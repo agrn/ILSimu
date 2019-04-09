@@ -8,5 +8,5 @@ set(PACKAGE rasseiver)
 set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
 set(VERSION ${VERSION_STRING})
 
-add_executable(${PACKAGE} main.cpp)
+add_executable(${PACKAGE} main.cpp device_airspy.cpp)
 target_link_libraries(${PACKAGE} ${LIBAIRSPY_LIBRARIES})
