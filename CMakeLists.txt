@@ -8,11 +8,11 @@ endif ()
 set(CMAKE_C_FLAGS "-Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
 
-set(CMAKE_C_FLAGS_DEBUG "-Og -ggdb")
+set(CMAKE_C_FLAGS_DEBUG "-ggdb")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -s -flto -march=native")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-Og -ggdb -std=gnu++14")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -s -std=gnu++14 -flto -march=native")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -std=gnu++14")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -std=gnu++14")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
