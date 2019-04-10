@@ -7,7 +7,7 @@
 ConfigValue::ConfigValue(): value {""} {
 }
 
-ConfigValue::ConfigValue(std::string value): value {value} {
+ConfigValue::ConfigValue(std::string const &value): value {value} {
 }
 
 ConfigValue::operator std::string() const {

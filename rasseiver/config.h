@@ -5,15 +5,15 @@
 
 class ConfigValue {
  public:
-	ConfigValue();
-	ConfigValue(std::string value);
+  ConfigValue();
+  ConfigValue(std::string const &value);
 
-	operator std::string() const;
-	operator double() const;
-	operator int() const;
+  operator std::string() const;
+  operator double() const;
+  operator int() const;
 
  private:
-	std::string value;
+  std::string value;
 };
 
 #endif  /* __ILSIMU_RASSEIVER_CONFIG_H */
