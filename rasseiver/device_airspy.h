@@ -7,6 +7,9 @@
 
 class Airspy: public Device {
  public:
+  // No need for a default constructor.
+  Airspy() = delete;
+
   Airspy(unsigned int frequency=111100000,
 	 unsigned int sample_rate=2500000,
 	 airspy_sample_type sample_type=AIRSPY_SAMPLE_INT16_IQ);
