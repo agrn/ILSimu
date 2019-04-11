@@ -7,6 +7,9 @@ class Device {
   Device(Device const &) = delete;
   Device &operator=(Device const &) = delete;
 
+  virtual ~Device() {
+  };
+
   virtual void receive() = 0;
 };
 
