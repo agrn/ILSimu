@@ -50,7 +50,7 @@ static inline void trim(std::string &s) {
 
 static void parse_line(std::string const &line, ConfigMap &config) {
 	std::string key, value;
-	bool has_value = false;
+	bool has_value {false};
 
 	for (auto it = line.begin(); it != line.end(); ++it) {
 		if (*it == '#') {
