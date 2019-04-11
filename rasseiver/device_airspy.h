@@ -48,9 +48,9 @@ class Airspy: public Device {
   /**
    * Closes the Airspy.
    */
-  ~Airspy();
+  ~Airspy() override;
 
-  virtual void receive();
+  void receive() override;
 
   void set_frequency(unsigned int frequency);
   void set_sample_rate(unsigned int sample_rate);
