@@ -4,9 +4,22 @@
 # include <map>
 # include <string>
 
+/**
+ * Stores a value from the config file. It can then be converted to a double
+ * precision floating number, an integer or an unsigned integer.
+ */
 class ConfigValue {
  public:
+  /**
+   * Creates a ConfigValue with an empty string.
+   */
   ConfigValue() = default;
+
+  /**
+   * Creates a ConfigValue with the specified value.
+   *
+   * @param value The value to set.
+   */
   ConfigValue(std::string const &value);
 
   std::string get_value() const;
@@ -24,6 +37,10 @@ class ConfigValue {
 
 using ConfigMap = std::map<std::string, ConfigValue>;
 
+/**
+ * The default configuration. Set to use an Airspy device at a frequency of
+ * 111.1 MHz, 2.5 MSPS, and sample ints.
+ */
 const ConfigMap config_default = {
   {"device", ConfigValue {"airspy"}},
   {"frequency", ConfigValue {"111100000"}},
@@ -31,6 +48,13 @@ const ConfigMap config_default = {
   {"sample_type", ConfigValue {"int"}},
 };
 
+/**
+ * Parse the specified config file. `config' is not cleared before reading the
+ * file, but all existing values are replaced.
+ *
+ * @param file The file to read the configuration from.
+ * @param config The map to which parsed parameters are added.
+ */
 void config_read_file(std::string file, ConfigMap &config);
 
 #endif  /* __ILSIMU_RASSEIVER_CONFIG_H */
