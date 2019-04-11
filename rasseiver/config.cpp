@@ -4,9 +4,6 @@
 #include <fstream>
 #include <iostream>
 
-ConfigValue::ConfigValue(): value {""} {
-}
-
 ConfigValue::ConfigValue(std::string const &value): value {value} {
 }
 

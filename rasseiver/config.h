@@ -6,7 +6,7 @@
 
 class ConfigValue {
  public:
-  ConfigValue();
+  ConfigValue() = default;
   ConfigValue(std::string const &value);
 
   std::string get_value() const;
@@ -19,7 +19,7 @@ class ConfigValue {
   bool operator==(const ConfigValue &o) const;
 
  private:
-  std::string value;
+  std::string value {""};
 };
 
 using ConfigMap = std::map<std::string, ConfigValue>;
