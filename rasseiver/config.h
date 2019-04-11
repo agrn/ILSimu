@@ -31,6 +31,6 @@ const ConfigMap config_default = {
   {"sample_type", ConfigValue {"int"}},
 };
 
-void config_read_file(std::string file, ConfigMap &values);
+void config_read_file(std::string file, ConfigMap &config);
 
 #endif  /* __ILSIMU_RASSEIVER_CONFIG_H */

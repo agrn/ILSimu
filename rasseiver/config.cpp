@@ -48,8 +48,7 @@ static inline void trim(std::string &s) {
 	rtrim(s);
 }
 
-static void parse_line(std::string &line,
-		       std::map<std::string, ConfigValue> &values) {
+static void parse_line(std::string const &line, ConfigMap &config) {
 	std::string key, value;
 	bool has_value = false;
 
@@ -71,17 +70,17 @@ static void parse_line(std::string &line,
 		trim(key);
 		trim(value);
 
-		values[key] = ConfigValue {value};
+		config[key] = ConfigValue {value};
 	}
 }
 
-void config_read_file(std::string file, ConfigMap &values) {
-	std::ifstream config {file};
+void config_read_file(std::string file, ConfigMap &config) {
+	std::ifstream configFile {file};
 	std::string line;
 
-	if (!config.fail()) {
-		while (std::getline(config, line)) {
-			parse_line(line, values);
+	if (!configFile.fail()) {
+		while (std::getline(configFile, line)) {
+			parse_line(line, config);
 		}
 	} else {
 		std::cerr << "Failed to open file \"" << file << "\""
