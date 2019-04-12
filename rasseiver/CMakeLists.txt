@@ -9,4 +9,5 @@ set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
 set(VERSION ${VERSION_STRING})
 
 add_executable(${PACKAGE} main.cpp config.cpp device_airspy.cpp)
-target_link_libraries(${PACKAGE} ${LIBAIRSPY_LIBRARIES})
+target_link_libraries(${PACKAGE} ${LIBAIRSPY_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT})
