@@ -71,7 +71,7 @@ public:
     current.clear();
     current.reserve(count);
 
-    std::copy_n(new_values, count, std::back_inserter(current));
+    std::copy_n(new_values, count, current.begin());
   }
 
   /**
@@ -88,28 +88,33 @@ public:
    * ito).  If some parts that should be copied are out of bound, they
    * will be filled with empty elements.
    *
-   *
    * @param ifrom The element to copy from.  It is included in the
    * copy.
    * @param ito The element to copy to.  It is not included in the
    * copy.
    * @param dst The destination buffer.
-   * @param empty The element to copy in case an access is out of
-   * bounds.
    */
-  void copy_buffer(int ifrom, int ito, std::vector<T> &dst,
-		   T const &empty) const {
+  void copy_buffer(int ifrom, int ito, std::vector<T> &dst) const {
+    const T default_ {};
+
     dst.clear();
-    dst.reserve(ito - ifrom);
+    dst.reserve(ito - ifrom); // Allocate the whole destination at once
 
     for (int i = ifrom; i < ito; ++i) {
       if ((i < 0 && -i >= previous.size()) || (i >= 0 && i >= current.size())) {
-	dst.push_back(empty);
+	dst.push_back(default_);
       } else {
 	// might be optimised with std::copy()?
 	dst.push_back(this[i]);
       }
     }
+  }
+
+  /**
+   * Return the size of the current buffer.
+   */
+  size_t size() const {
+    return current.size();
   }
 
 private:
