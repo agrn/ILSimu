@@ -1,4 +1,4 @@
-#include "device_airspy.h"
+#include "device_airspy.hpp"
 
 #include <iostream>
 

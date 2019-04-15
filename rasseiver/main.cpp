@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "config.h"
-#include "device_airspy.h"
+#include "config.hpp"
+#include "device_airspy.hpp"
 
 /**
  * Run the program with an Airspy device.

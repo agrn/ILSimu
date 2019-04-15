@@ -1,7 +1,7 @@
 #ifndef __ILSIMU_RASSEIVER_DEVICE_AIRSPY_H
 # define __ILSIMU_RASSEIVER_DEVICE_AIRSPY_H
 
-# include "device.h"
+# include "device.hpp"
 
 # include <airspy.h>
 
