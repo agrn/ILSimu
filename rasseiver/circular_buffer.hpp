@@ -22,6 +22,23 @@ public:
 	 */
 	CircularBuffer() = default;
 
+	/**
+	 * Creates a circular buffer with a specified size of count.
+	 *
+	 * This avoids allocating memory during the processing of the buffer,
+	 * which could be as reliable and fast as possible.  Dynamic memory
+	 * allocation takes time and can fail on some systems.
+	 *
+	 * Doing this at initialisation allows the software to crash at startup,
+	 * and even if annoying, it's infinitely less than in the middle of a
+	 * work session.
+	 *
+	 * @param count The amount of memory to allocate in each buffer.
+	 */
+	CircularBuffer(size_t count): previous (count), current (count) {
+	}
+
+	// No need for the copy constructor and the assignment operator.
 	CircularBuffer(CircularBuffer const &) = delete;
 	CircularBuffer &operator=(CircularBuffer const &) = delete;
 
