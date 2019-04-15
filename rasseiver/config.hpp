@@ -1,5 +1,5 @@
-#ifndef __ILSIMU_RASSEIVER_CONFIG_H
-# define __ILSIMU_RASSEIVER_CONFIG_H
+#ifndef __ILSIMU_RASSEIVER_CONFIG_HPP
+# define __ILSIMU_RASSEIVER_CONFIG_HPP
 
 # include <map>
 # include <string>
@@ -9,30 +9,30 @@
  * precision floating number, an integer or an unsigned integer.
  */
 class ConfigValue {
- public:
-  /**
-   * Creates a ConfigValue with an empty string.
-   */
-  ConfigValue() = default;
+public:
+	/**
+	 * Creates a ConfigValue with an empty string.
+	 */
+	ConfigValue() = default;
 
-  /**
-   * Creates a ConfigValue with the specified value.
-   *
-   * @param value The value to set.
-   */
-  ConfigValue(std::string const &value);
+	/**
+	 * Creates a ConfigValue with the specified value.
+	 *
+	 * @param value The value to set.
+	 */
+	ConfigValue(std::string const &value);
 
-  std::string get_value() const;
+	std::string get_value() const;
 
-  operator double() const;
-  operator int() const;
-  operator unsigned int() const;
+	operator double() const;
+	operator int() const;
+	operator unsigned int() const;
 
-  bool operator==(const std::string &s) const;
-  bool operator==(const ConfigValue &o) const;
+	bool operator==(const std::string &s) const;
+	bool operator==(const ConfigValue &o) const;
 
- private:
-  std::string value {""};
+private:
+	std::string value {""};
 };
 
 using ConfigMap = std::map<std::string, ConfigValue>;
@@ -42,10 +42,10 @@ using ConfigMap = std::map<std::string, ConfigValue>;
  * 111.1 MHz, 2.5 MSPS, and sample ints.
  */
 const ConfigMap config_default = {
-  {"device", ConfigValue {"airspy"}},
-  {"frequency", ConfigValue {"111100000"}},
-  {"sample_rate", ConfigValue {"2500000"}},
-  {"sample_type", ConfigValue {"int"}},
+	{"device", ConfigValue {"airspy"}},
+	{"frequency", ConfigValue {"111100000"}},
+	{"sample_rate", ConfigValue {"2500000"}},
+	{"sample_type", ConfigValue {"int"}},
 };
 
 /**
@@ -57,4 +57,4 @@ const ConfigMap config_default = {
  */
 void config_read_file(std::string file, ConfigMap &config);
 
-#endif  /* __ILSIMU_RASSEIVER_CONFIG_H */
+#endif  /* __ILSIMU_RASSEIVER_CONFIG_HPP */
