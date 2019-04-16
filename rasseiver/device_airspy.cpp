@@ -71,10 +71,21 @@ void Airspy::set_sample_type(airspy_sample_type sample_type) {
 
 Airspy::~Airspy() {
 	if (this->device != nullptr) {
+		airspy_stop_rx(device);
 		airspy_close(device);
 		std::cout << "Closing airspy" << std::endl;
 	}
 }
 
-void Airspy::receive() {
+static int airspy_callback(airspy_transfer_t *transfer) {
+	auto *process = static_cast<Process<int16_t> *> (transfer->ctx);
+	int16_t *samples = (int16_t *) transfer->samples;
+
+	process->operator()(samples, transfer->sample_count * 2);
+
+	return 0;
+}
+
+void Airspy::receive(Process<int16_t> const &process) {
+	airspy_start_rx(device, airspy_callback, (void *) &process);
 }

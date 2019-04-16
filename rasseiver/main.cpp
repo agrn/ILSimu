@@ -7,6 +7,7 @@
 #include "circular_buffer.hpp"
 #include "config.hpp"
 #include "device_airspy.hpp"
+#include "filter.hpp"
 
 /**
  * Run the program with an Airspy device.  Stops when a signal in the sigset is
@@ -14,18 +15,21 @@
  *
  * TODO: sigset should be part of another function, perhaps.
  *
- * @param config The configuration of the device
- * @param set List of signals to wait for
+ * @param config The configuration of the device.
+ * @param set List of signals to wait for.
+ * @param filter The filter to be used on the input signal.
  */
-void run_airspy(ConfigMap const &config, sigset_t &set) {
+void run_airspy(ConfigMap const &config, sigset_t const &set,
+		Filter const &filter) {
 	Airspy airspy {config.at("frequency"),
 			config.at("sample_rate"),
 			AIRSPY_SAMPLE_INT16_IQ};
+	Process<int16_t> process {65536 * 2, filter, 60};
 	int sig;
 
-	airspy.receive();
-
 	std::cout << "hello, world" << std::endl;
+
+	airspy.receive(process);
 	sigwait(&set, &sig);
 }
 
@@ -52,6 +56,7 @@ int setup_sigmask(sigset_t &set) {
 
 int main(int argc, char **argv) {
 	ConfigMap config {config_default};
+	Filter filter;
 	sigset_t set;
 
 	// Check program parameters
@@ -74,7 +79,7 @@ int main(int argc, char **argv) {
 
 	// Check the device type, and call the appropriate function
 	if (config["device"] == "airspy") {
-		run_airspy(config, set);
+		run_airspy(config, set, filter);
 	} else {
 		// Unknown device
 		std::cerr << "Unknown device type \""

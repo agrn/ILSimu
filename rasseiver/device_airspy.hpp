@@ -14,7 +14,7 @@
  * allocated on the stack or with an unique_ptr, the device will
  * be automatically closed.
  */
-class Airspy: public Device {
+class Airspy: public Device<int16_t> {
 public:
 	// No need for a default constructor.
 	Airspy() = delete;
@@ -50,7 +50,7 @@ public:
 	 */
 	~Airspy() override;
 
-	void receive() override;
+	void receive(Process<int16_t> const &process) override;
 
 	void set_frequency(unsigned int frequency);
 	void set_sample_rate(unsigned int sample_rate);

@@ -1,9 +1,12 @@
 #ifndef __ILSIMU_RASSEIVER_DEVICE_HPP
 # define __ILSIMU_RASSEIVER_DEVICE_HPP
 
+# include "process.hpp"
+
 /**
  * An abstract device class.
  */
+template<typename T>
 class Device {
 public:
 	/**
@@ -15,12 +18,14 @@ public:
 	Device &operator=(Device const &) = delete;
 
 	virtual ~Device() {
-	};
+	}
 
 	/**
 	 * Receive data from the device.
+	 *
+	 * @param process The process to apply to the input.
 	 */
-	virtual void receive() = 0;
+	virtual void receive(Process<T> const &process) = 0;
 };
 
 #endif  /* __ILSIMU_RASSEIVER_DEVICE_HPP */
