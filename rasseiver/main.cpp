@@ -72,6 +72,10 @@ int main(int argc, char **argv) {
 		config_read_file(argv[1], config);
 	}
 
+	if (config.count("filter") > 0) {
+		filter_read_file(config["filter"].get_value(), filter);
+	}
+
 	// Setup signals
 	if (setup_sigmask(set)) {
 		return EXIT_FAILURE;
