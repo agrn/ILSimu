@@ -2,7 +2,9 @@
 #include <iostream>
 #include <vector>
 
-void filter_read_file(std::string file, std::vector<double> &values) {
+#include "filter.hpp"
+
+void filter_read_file(std::string file, Filter &filter) {
 	std::ifstream valueFile {file};
 	std::string line;
 
@@ -10,7 +12,7 @@ void filter_read_file(std::string file, std::vector<double> &values) {
 		while (std::getline(valueFile, line)) {
 			try {
 				double value = std::stod(line);
-				values.push_back(value);
+				filter.push_back(value);
 			} catch (std::invalid_argument e) {
 				// Not a number, ignoring
 			}
