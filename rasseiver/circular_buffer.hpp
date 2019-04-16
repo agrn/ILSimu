@@ -88,7 +88,7 @@ public:
 		current.clear();
 		current.reserve(count);
 
-		std::copy_n(new_values, count, current.begin());
+		std::copy_n(new_values, count, std::back_inserter(current));
 	}
 
 	/**
