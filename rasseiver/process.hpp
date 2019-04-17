@@ -4,7 +4,6 @@
 # include <array>
 # include <vector>
 
-# include <numeric>
 
 # include "circular_buffer.hpp"
 # include "filter.hpp"
@@ -15,20 +14,19 @@ public:
 	Process() = delete;
 
 	Process(size_t bufsize, Filter const &filter, int step):
-		buf {bufsize}, output (bufsize), filter {filter}, step {step} {
-		std::iota(std::begin(pos), std::end(pos), 0);
+		buf {bufsize}, pos {{0, 1}}, output (bufsize), filter {filter},
+		step {step} {
 	}
 
 	Process(size_t bufsize, Filter &&filter, int step):
-		buf {bufsize}, output (bufsize), filter {std::move(filter)},
-		step {step} {
-		std::iota(std::begin(pos), std::end(pos), 0);
+		buf {bufsize}, pos{{0, 1}}, output (bufsize),
+		filter {std::move(filter)}, step {step} {
 	}
 
 	Process(Process const &) = delete;
 	Process &operator=(Process const &) = delete;
 
-	void operator()(T *input, size_t count) {
+	void apply(T *input, size_t count) {
 		output.clear();
 
 		buf.switch_buffer(input, count);

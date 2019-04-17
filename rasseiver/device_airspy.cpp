@@ -81,7 +81,7 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 	auto *process = static_cast<Process<int16_t> *> (transfer->ctx);
 	int16_t *samples = (int16_t *) transfer->samples;
 
-	process->operator()(samples, transfer->sample_count * 2);
+	process->apply(samples, transfer->sample_count * 2);
 
 	return 0;
 }
