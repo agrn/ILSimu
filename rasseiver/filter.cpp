@@ -13,7 +13,7 @@ void filter_read_file(std::string file, Filter &filter) {
 			try {
 				double value = std::stod(line);
 				filter.push_back(value);
-			} catch (std::invalid_argument e) {
+			} catch (std::invalid_argument const &e) {
 				// Not a number, ignoring
 			}
 		}

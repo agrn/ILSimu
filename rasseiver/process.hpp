@@ -13,9 +13,9 @@ class Process {
 public:
 	Process() = delete;
 
-	Process(size_t bufsize, Filter const &filter, int step):
-		buf {bufsize}, output (bufsize), filter {filter}, pos {0},
-		step {step} {
+	Process(size_t bufsize, Filter filter, int step):
+		buf {bufsize}, output (bufsize), filter {std::move(filter)},
+		pos {0}, step {step} {
 	}
 
 	Process(size_t bufsize, Filter &&filter, int step):

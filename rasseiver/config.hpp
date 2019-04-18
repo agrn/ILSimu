@@ -20,7 +20,7 @@ public:
 	 *
 	 * @param value The value to set.
 	 */
-	ConfigValue(std::string const &value);
+	ConfigValue(std::string value);
 
 	std::string get_value() const;
 

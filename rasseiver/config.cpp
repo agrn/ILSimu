@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 
-ConfigValue::ConfigValue(std::string const &value): value {value} {
+ConfigValue::ConfigValue(std::string value): value {std::move(value)} {
 }
 
 std::string ConfigValue::get_value() const {
