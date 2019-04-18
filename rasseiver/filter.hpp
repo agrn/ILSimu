@@ -4,6 +4,8 @@
 # include <string>
 # include <vector>
 
+# include <cmath>
+
 # include "circular_buffer.hpp"
 
 using Filter = std::vector<double>;
@@ -38,15 +40,15 @@ size_t filter_buffer(CircularBuffer<T> const &buffer, Filter const &filter,
 	size_t i;
 
 	for (i = begin; i < buffer.size(); i += step * 2) {
-		T valueI {}, valueQ {};
+		double valueI {}, valueQ {};
 
 		for (size_t j = 0; j < filter.size(); ++j) {
 			valueI += buffer[i - (j * 2)] * filter[j];
 			valueQ += buffer[i + 1 - (j * 2)] * filter[j];
 		}
 
-		output.push_back(valueI);
-		output.push_back(valueQ);
+		output.push_back(std::round(valueI));
+		output.push_back(std::round(valueQ));
 	}
 
 	return i;
