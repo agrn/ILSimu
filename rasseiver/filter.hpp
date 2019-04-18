@@ -30,23 +30,23 @@ void filter_read_file(std::string file, Filter &filter);
  *   filtered.  The result is the same as if the filter was applied to the
  *   whole input, and then decimated, but it's faster to do both at the
  *   same time.
- * @param channels Number of channels in the input.  Useful when the input
- *   is an IQ-demodulated signal.
  */
 template<typename T>
 size_t filter_buffer(CircularBuffer<T> const &buffer, Filter const &filter,
 		     std::vector<T> &output,
-		     size_t begin, int step, int channels) {
+		     size_t begin, int step) {
 	size_t i;
 
-	for (i = begin; i < buffer.size(); i += step * channels) {
-		T value {};
+	for (i = begin; i < buffer.size(); i += step * 2) {
+		T valueI {}, valueQ {};
 
 		for (size_t j = 0; j < filter.size(); ++j) {
-			value += buffer[i - (j * channels)] * filter[j];
+			valueI += buffer[i - (j * 2)] * filter[j];
+			valueQ += buffer[i + 1 - (j * 2)] * filter[j];
 		}
 
-		output.push_back(value);
+		output.push_back(valueI);
+		output.push_back(valueQ);
 	}
 
 	return i;

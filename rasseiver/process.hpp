@@ -14,13 +14,13 @@ public:
 	Process() = delete;
 
 	Process(size_t bufsize, Filter const &filter, int step):
-		buf {bufsize}, pos {{0, 1}}, output (bufsize), filter {filter},
+		buf {bufsize}, output (bufsize), filter {filter}, pos {0},
 		step {step} {
 	}
 
 	Process(size_t bufsize, Filter &&filter, int step):
-		buf {bufsize}, pos{{0, 1}}, output (bufsize),
-		filter {std::move(filter)}, step {step} {
+		buf {bufsize}, output (bufsize), filter {std::move(filter)},
+		pos {0}, step {step} {
 	}
 
 	Process(Process const &) = delete;
@@ -31,19 +31,17 @@ public:
 
 		buf.switch_buffer(input, count);
 
-		pos[0] = filter_buffer(buf, filter, output, pos[0], 60, 2)
-			% buf.size();
 
-		pos[1] = filter_buffer(buf, filter, output, pos[1], 60, 2)
+		pos = filter_buffer(buf, filter, output, pos, step)
 			% buf.size();
 	}
 
 private:
 	CircularBuffer<T> buf;
-	std::array<size_t, 2> pos;
 	std::vector<T> output;
 	Filter filter;
 
+	size_t pos;
 	int step;
 };
 
