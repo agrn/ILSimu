@@ -14,7 +14,7 @@ using Filter = std::vector<double>;
  * @param file The file to read the configuration from.
  * @param values The vector where the read values are stored.
  */
-void filter_read_file(std::string file, Filter &filter);
+void filter_read_file(std::string const &file, Filter &filter);
 
 /**
  * FIR implementation.  The input buffer is convoluted with the filter.

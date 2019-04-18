@@ -4,7 +4,7 @@
 
 #include "filter.hpp"
 
-void filter_read_file(std::string file, Filter &filter) {
+void filter_read_file(std::string const &file, Filter &filter) {
 	std::ifstream valueFile {file};
 	std::string line;
 
