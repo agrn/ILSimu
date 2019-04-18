@@ -46,6 +46,7 @@ const ConfigMap config_default = {
 	{"frequency", ConfigValue {"111100000"}},
 	{"sample_rate", ConfigValue {"2500000"}},
 	{"sample_type", ConfigValue {"int"}},
+	{"decimation", ConfigValue {"60"}},
 };
 
 /**
