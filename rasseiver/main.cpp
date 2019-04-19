@@ -29,8 +29,15 @@ void run_airspy(ConfigMap const &config, sigset_t const &set,
 
 	std::cout << "hello, world" << std::endl;
 
-	airspy.receive(process);
+	// Start receiving data from the Airspy
+	Receiver<Airspy, int16_t> receiver {airspy, process};
+
+	// Wait until we receive a signal
 	sigwait(&set, &sig);
+
+	// Stop receiving data from the Airspy, clear the process and close the
+	// Airspy.  This is automatically handled by the compiler thanks to
+	// RAII.
 }
 
 /**
@@ -72,6 +79,7 @@ int main(int argc, char **argv) {
 		config_read_file(argv[1], config);
 	}
 
+	// Read the filter from the disk, if provided
 	if (config.count("filter") > 0) {
 		filter_read_file(config["filter"].get_value(), filter);
 	}
