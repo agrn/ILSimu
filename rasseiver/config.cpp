@@ -31,6 +31,11 @@ bool ConfigValue::operator==(const ConfigValue &o) const {
 	return this->value == o.value;
 }
 
+/*
+ * ltrim(), rtrim() and trim() were taken from this StackOverflow answer:
+ * https://stackoverflow.com/a/217605
+ */
+
 /**
  * Delete spaces at the beginning of a string in place.
  *
@@ -71,23 +76,32 @@ static inline void trim(std::string &s) {
  */
 static void parse_line(std::string const &line, ConfigMap &config) {
 	std::string key, value;
-	bool has_value {false};
+	bool has_value {false}; // Indicates whether or not the key has been
+				// read fully.
 
 	for (auto it = line.begin(); it != line.end(); ++it) {
 		if (*it == '#') {
+			// `#' are comments until the end of the line, ignores
+			// the rest of the line.
 			break;
 		} else if (*it == '=') {
+			// The key is over, so all the following characters are
+			// part of the key.
 			has_value = true;
-		} else if (*it == '\\') {
-			++it;
 		} else if (has_value) {
+			// If the key has been fully read, add the current
+			// char to the value.
 			value.append(1, *it);
 		} else {
+			// If the key has not been fully read yet, add the
+			// current char to the key.
 			key.append(1, *it);
 		}
 	}
 
 	if (has_value) {
+		// If a key and a value have been found, remove their trailing
+		// whitespaces and add them to the config map.
 		trim(key);
 		trim(value);
 
@@ -98,6 +112,8 @@ static void parse_line(std::string const &line, ConfigMap &config) {
 void config_read_file(std::string file, ConfigMap &config) {
 	std::ifstream configFile {file};
 	std::string line;
+
+	// Opens a file, read it line by line, and parse each line.
 
 	if (!configFile.fail()) {
 		while (std::getline(configFile, line)) {
