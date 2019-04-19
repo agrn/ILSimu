@@ -8,24 +8,56 @@
 # include "circular_buffer.hpp"
 # include "filter.hpp"
 
+/**
+ * Defines a process to apply to an input buffer.
+ *
+ * This is a class and not a raw function, because it needs to carry multiple
+ * parameters, such as the filter.  It is agnostic of the underlying device, and
+ * should be easily reusable.
+ */
 template<typename T>
 class Process {
 public:
+	// No need for a default constructor
 	Process() = delete;
 
+	/**
+	 * Creates a new process with a specified size, filter, and decimation
+	 * factor.
+	 *
+	 * @param bufsize The size of the input buffer to create.
+	 * @param filter The filter to create.  This version copies the filter.
+	 * @param step The decimation factor.
+	 */
 	Process(size_t bufsize, Filter filter, int step):
 		buf {bufsize}, output (bufsize), filter {std::move(filter)},
 		pos {0}, step {step} {
 	}
 
+	/**
+	 * Creates a new process with a specified size, filter, and decimation
+	 * factor.
+	 *
+	 * @param bufsize The size of the input buffer to create.
+	 * @param filter The filter to create.  This version moves the buffer.
+	 * @param step The decimation factor.
+	 */
 	Process(size_t bufsize, Filter &&filter, int step):
 		buf {bufsize}, output (bufsize), filter {std::move(filter)},
 		pos {0}, step {step} {
 	}
 
+	// No need for these
 	Process(Process const &) = delete;
 	Process &operator=(Process const &) = delete;
 
+	/**
+	 * Apply the process to the input buffer.
+	 *
+	 * @param input The raw input data from the buffer.  It is expected to
+	 *   have interleaved I and Q values.
+	 * @param count The size of the buffer.
+	 */
 	void apply(T *input, size_t count) {
 		output.clear();
 
