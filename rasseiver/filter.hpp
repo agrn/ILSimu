@@ -19,7 +19,8 @@ using Filter = std::vector<double>;
 void filter_read_file(std::string const &file, Filter &filter);
 
 /**
- * FIR implementation.  The input buffer is convoluted with the filter.
+ * FIR implementation.  The input buffer is convoluted with the filter.  The
+ * input buffer is assumed to contain interleaved I and Q samples.
  *
  * This function does not permorm any kind of bound checking when accessing to
  * values in the buffer.  Make sure it is big enough.
