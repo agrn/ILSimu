@@ -39,7 +39,7 @@ using ConfigMap = std::map<std::string, ConfigValue>;
 
 /**
  * The default configuration. Set to use an Airspy device at a frequency of
- * 111.1 MHz, 2.5 MSPS, and sample ints.
+ * 111.1 MHz, 2.5 MSPS, sample integers, and decimate at a factor of 60.
  */
 const ConfigMap config_default = {
 	{"device", ConfigValue {"airspy"}},
