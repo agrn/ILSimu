@@ -57,6 +57,9 @@ public:
 	void receive(Process<int16_t> &process) override;
 	void stop() override;
 
+	size_t buffer_size() override;
+	int max_value() override;
+
 private:
 	airspy_device *device {nullptr};
 };

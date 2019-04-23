@@ -107,3 +107,15 @@ void Airspy::receive(Process<int16_t> &process) {
 void Airspy::stop() {
 	airspy_stop_rx(device);
 }
+
+size_t Airspy::buffer_size() {
+	// 262144 is from libairspy.  This is the size of the buffer in bytes.
+	// Divided by 2 for both IQ channels, then by the size of an int16_t
+	// (should be 2).  The final result should be equal to 65536.
+	return 262144 / 2 / sizeof(int16_t);
+}
+
+int Airspy::max_value() {
+	// 2^12
+	return 4069;
+}

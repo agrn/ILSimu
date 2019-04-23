@@ -31,6 +31,16 @@ public:
 	 * Stop receiving data from the device.
 	 */
 	virtual void stop() = 0;
+
+	/**
+	 * Returns the size of the internal buffer of the device.
+	 */
+	virtual size_t buffer_size() = 0;
+
+	/**
+	 * Returns the max value that the device can sample.
+	 */
+	virtual int max_value() = 0;
 };
 
 /**
