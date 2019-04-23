@@ -4,6 +4,9 @@
 # include <array>
 # include <vector>
 
+# include <cmath>
+
+# include <iostream>
 
 # include "circular_buffer.hpp"
 # include "filter.hpp"
@@ -28,10 +31,13 @@ public:
 	 * @param bufsize The size of the input buffer to create.
 	 * @param filter The filter to create.  This version copies the filter.
 	 * @param step The decimation factor.
+	 * @param threshold The max value that the device associated with this
+	 *   process can sample.  Multiplied by 92%, and is used to detect
+	 *   saturation.
 	 */
-	Process(size_t bufsize, Filter filter, int step):
+	Process(size_t bufsize, Filter filter, int step, int threshold):
 		buf {bufsize}, output (bufsize), filter {std::move(filter)},
-		pos {0}, step {step} {
+		pos {0}, step {step}, threshold {(int) (threshold * 0.92)} {
 	}
 
 	/**
@@ -41,10 +47,13 @@ public:
 	 * @param bufsize The size of the input buffer to create.
 	 * @param filter The filter to create.  This version moves the buffer.
 	 * @param step The decimation factor.
+	 * @param threshold The max value that the device associated with this
+	 *   process can sample.  Multiplied by 92%, and is used to detect
+	 *   saturation.
 	 */
-	Process(size_t bufsize, Filter &&filter, int step):
+	Process(size_t bufsize, Filter &&filter, int step, int threshold):
 		buf {bufsize}, output (bufsize), filter {std::move(filter)},
-		pos {0}, step {step} {
+		pos {0}, step {step}, threshold {(int) (threshold * 0.92)} {
 	}
 
 	// No need for these
@@ -63,9 +72,11 @@ public:
 
 		buf.switch_buffer(input, count);
 
+		bool saturation {filter_buffer(buf, filter, output, pos, step,
+					       threshold)};
+		pos %= buf.size();
 
-		pos = filter_buffer(buf, filter, output, pos, step)
-			% buf.size();
+		(void) saturation;
 	}
 
 private:
@@ -75,6 +86,7 @@ private:
 
 	size_t pos;
 	int step;
+	int threshold;
 };
 
 #endif  /* __ILSIMU_RASSEIVER_PROCESS_HPP */

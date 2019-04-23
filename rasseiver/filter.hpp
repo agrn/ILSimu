@@ -25,34 +25,47 @@ void filter_read_file(std::string const &file, Filter &filter);
  * This function does not permorm any kind of bound checking when accessing to
  * values in the buffer.  Make sure it is big enough.
  *
+ * Saturation occurs when the modulus of an IQ sample is higher or equal to the
+ * threshold.  Although it is not the best way to calculate it, it's relatively
+ * fast and simple.
+ *
  * @param buffer The buffer to filter.
  * @param filter The values of the FIR.
  * @param output The output.
- * @param begin The index of the first element to filter.
+ * @param begin The index of the first element to filter.  It is used by the
+ *   loop as an index and is incremented in `step * 2' incrementns.  When the
+ *   function returns, its value will be between `buffer.size()' and
+ *   `buffer.size() + step * 2'.
  * @param step The decimation factor.  Only one value out of `step` is
  *   filtered.  The result is the same as if the filter was applied to the
  *   whole input, and then decimated, but it's faster to do both at the
  *   same time.
+ * @return True if a saturation occurs, otherwise false.
  */
 template<typename T>
-size_t filter_buffer(CircularBuffer<T> const &buffer, Filter const &filter,
-		     std::vector<T> &output,
-		     size_t begin, int step) {
-	size_t i;
+bool filter_buffer(CircularBuffer<T> const &buffer, Filter const &filter,
+		   std::vector<T> &output, size_t &begin, int step,
+		   int threshold) {
+	size_t &i {begin};
+	bool saturation {false};
 
-	for (i = begin; i < buffer.size(); i += step * 2) {
+	for (; i < buffer.size(); i += step * 2) {
 		double valueI {}, valueQ {};
 
-		for (size_t j = 0; j < filter.size(); ++j) {
+		for (size_t j {0}; j < filter.size(); ++j) {
 			valueI += buffer[i - (j * 2)] * filter[j];
 			valueQ += buffer[i + 1 - (j * 2)] * filter[j];
 		}
 
 		output.push_back(std::round(valueI));
 		output.push_back(std::round(valueQ));
+
+		if (std::sqrt(valueI * valueI + valueQ * valueQ) >= threshold) {
+			saturation = true;
+		}
 	}
 
-	return i;
+	return saturation;
 }
 
 #endif  /* __ILSIMU_RASSEIVER_FILTER_HPP */

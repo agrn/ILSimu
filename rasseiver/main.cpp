@@ -24,7 +24,8 @@ void run_airspy(ConfigMap const &config, sigset_t const &set,
 	Airspy airspy {config.at("frequency"),
 			config.at("sample_rate"),
 			AIRSPY_SAMPLE_INT16_IQ};
-	Process<int16_t> process {65536 * 2, filter, config.at("decimation")};
+	Process<int16_t> process {airspy.buffer_size(), filter,
+			config.at("decimation"), airspy.max_value()};
 	int sig;
 
 	std::cout << "hello, world" << std::endl;
