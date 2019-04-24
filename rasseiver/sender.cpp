@@ -1,40 +1,59 @@
-#include <iostream>
+#include <stdexcept>
 
 #include <cerrno>
-#include <cstdlib>
 #include <unistd.h>
 #include <cstring>
-#include <strings.h>
 
 #include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 #include "sender.hpp"
 
-static inline void throw_error(std::string &&message) {
-	throw std::runtime_error(message + ": " + std::strerror(errno));
+Fd::Fd(): fd {-1}, connected {false} {
+}
+
+Fd::Fd(int &&fd): fd {fd}, connected {true} {
+}
+
+Fd::~Fd() {
+	close();
+}
+
+Fd &Fd::operator=(Fd &&fd) {
+	close();
+
+	Fd::fd = fd.fd;
+	Fd::connected = fd.connected;
+
+	fd.fd = -1;
+	fd.connected = false;
+
+	return *this;
+}
+
+void Fd::close() {
+	if (connected) {
+		::close(fd);
+		connected = false;
+	}
 }
 
 Sender::Sender(std::string const &address, uint16_t port):
-	address {address}, port {port}, connected {false}, fd {reconnect()} {
-	connected = true;
+	address {address}, port {port} {
+	if (reconnect() != 0) {
+		throw std::runtime_error(
+			"Failed to connect to " + address + ":" + std::to_string(port) + ": " +
+			std::strerror(errno));
+	}
 }
 
 Sender::~Sender() {
-	if (connected) {
-		close(fd);
-		std::cout << "a+" << std::endl;
-	}
+	fd.close();
 }
 
 int Sender::reconnect() {
-	if (connected) {
-		close(fd);
-		connected = false;
-	}
+	fd.close();
 
-	int fd {socket(AF_INET, SOCK_STREAM, 0)};
+	Fd newFd {socket(AF_INET, SOCK_STREAM, 0)};
 	struct sockaddr_in server_addr;
 
 	bzero(&server_addr, sizeof(struct sockaddr_in));
@@ -42,14 +61,15 @@ int Sender::reconnect() {
 	server_addr.sin_port = htons(port);
 
 	if (inet_pton(AF_INET, address.c_str(), &server_addr.sin_addr) != 1) {
-		throw_error("inet_pton()");
+		return -1;
 	}
 
-	if (connect(fd, (struct sockaddr *) &server_addr,
+	if (connect(newFd.fd, (struct sockaddr *) &server_addr,
 		    sizeof(struct sockaddr_in))) {
-		close(fd);
-		throw_error("connect()");
+		return -1;
 	}
 
-	return fd;
+	fd = std::move(newFd);
+
+	return 0;
 }
