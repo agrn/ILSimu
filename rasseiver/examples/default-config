@@ -1,0 +1,8 @@
+device = airspy
+frequency = 111100000 # 111.1 MHz
+sample_rate = 2500000 # 2.5 MSPS
+sample_type = int
+decimation = 60
+filter = LPDFilter.fcf # Replace this by the real file
+host = 127.0.0.1
+port = 10000
