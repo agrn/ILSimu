@@ -8,7 +8,7 @@ set(PACKAGE rasseiver)
 set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
 set(VERSION ${VERSION_STRING})
 
-add_executable(${PACKAGE} main.cpp config.cpp device_airspy.cpp filter.cpp
-  sender.cpp)
+add_executable(${PACKAGE} src/main.cpp src/config.cpp src/device_airspy.cpp
+  src/filter.cpp src/sender.cpp)
 target_link_libraries(${PACKAGE} PUBLIC ${LIBAIRSPY_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT})
