@@ -79,23 +79,23 @@ static void parse_line(std::string const &line, ConfigMap &config) {
 	bool has_value {false}; // Indicates whether or not the key has been
 				// read fully.
 
-	for (auto it = line.begin(); it != line.end(); ++it) {
-		if (*it == '#') {
+	for (auto &it: line) {
+		if (it == '#') {
 			// `#' are comments until the end of the line, ignores
 			// the rest of the line.
 			break;
-		} else if (*it == '=') {
+		} else if (it == '=') {
 			// The key is over, so all the following characters are
 			// part of the key.
 			has_value = true;
 		} else if (has_value) {
 			// If the key has been fully read, add the current
 			// char to the value.
-			value.append(1, *it);
+			value.append(1, it);
 		} else {
 			// If the key has not been fully read yet, add the
 			// current char to the key.
-			key.append(1, *it);
+			key.append(1, it);
 		}
 	}
 
