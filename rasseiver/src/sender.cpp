@@ -18,7 +18,7 @@ Fd::~Fd() {
 	close();
 }
 
-Fd &Fd::operator=(Fd &&fd) {
+Fd &Fd::operator=(Fd &&fd) noexcept {
 	close();
 
 	Fd::fd = fd.fd;

@@ -54,7 +54,7 @@ struct Fd {
 	 *
 	 * @param fd The file descriptor to move.
 	 */
-	Fd &operator=(Fd &&fd);
+	Fd &operator=(Fd &&fd) noexcept;
 
 	/**
 	 * If the file descriptor is usable (ie. `connected' is set to true),
