@@ -4,12 +4,9 @@
 # include <array>
 # include <vector>
 
-# include <cmath>
-
-# include <iostream>
-
 # include "circular_buffer.hpp"
 # include "filter.hpp"
+# include "sender.hpp"
 
 /**
  * Defines a process to apply to an input buffer.
@@ -35,9 +32,11 @@ public:
 	 *   process can sample.  Multiplied by 92%, and is used to detect
 	 *   saturation.
 	 */
-	Process(size_t bufsize, Filter filter, int step, int threshold):
+	Process(size_t bufsize, Filter filter, int step, int threshold,
+		std::string &&host, unsigned int port):
 		buf {bufsize}, output (bufsize), filter {std::move(filter)},
-		pos {0}, step {step}, threshold {(int) (threshold * 0.92)} {
+		pos {0}, step {step}, threshold {(int) (threshold * 0.92)},
+		sender {host, (uint16_t) port} {
 	}
 
 	/**
@@ -51,9 +50,11 @@ public:
 	 *   process can sample.  Multiplied by 92%, and is used to detect
 	 *   saturation.
 	 */
-	Process(size_t bufsize, Filter &&filter, int step, int threshold):
+	Process(size_t bufsize, Filter &&filter, int step, int threshold,
+		std::string &&host, unsigned int port):
 		buf {bufsize}, output (bufsize), filter {std::move(filter)},
-		pos {0}, step {step}, threshold {(int) (threshold * 0.92)} {
+		pos {0}, step {step}, threshold {(int) (threshold * 0.92)},
+		sender {host, (uint16_t) port} {
 	}
 
 	// No need for these
@@ -77,6 +78,10 @@ public:
 		pos %= buf.size();
 
 		(void) saturation;
+
+		if (sender.send_vector<T>(output) <= 0) {
+			sender.reconnect();
+		}
 	}
 
 private:
@@ -87,6 +92,8 @@ private:
 	size_t pos;
 	int step;
 	int threshold;
+
+	Sender sender;
 };
 
 #endif  /* __ILSIMU_RASSEIVER_PROCESS_HPP */

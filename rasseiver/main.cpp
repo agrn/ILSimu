@@ -25,7 +25,8 @@ void run_airspy(ConfigMap const &config, sigset_t const &set,
 			config.at("sample_rate"),
 			AIRSPY_SAMPLE_INT16_IQ};
 	Process<int16_t> process {airspy.buffer_size(), filter,
-			config.at("decimation"), airspy.max_value()};
+			config.at("decimation"), airspy.max_value(),
+			config.at("host").get_value(), config.at("port")};
 	int sig;
 
 	std::cout << "hello, world" << std::endl;
@@ -92,7 +93,12 @@ int main(int argc, char **argv) {
 
 	// Check the device type, and call the appropriate function
 	if (config["device"] == "airspy") {
-		run_airspy(config, set, filter);
+		try {
+			run_airspy(config, set, filter);
+		} catch (std::runtime_error &e) {
+			std::cerr << e.what() << std::endl;
+			return EXIT_FAILURE;
+		}
 	} else {
 		// Unknown device
 		std::cerr << "Unknown device type \""
