@@ -79,9 +79,15 @@ Airspy::~Airspy() {
 /**
  * A callback to wrap the real process to apply.
  *
- * This function only receive the context parameter, converts it to a Process,
- * and calls its method apply().  This call should be inlined when the program
- * is optimised.
+ * This functions checks if the Airspy is still synced with its clock, and calls
+ * the process provided.
+ *
+ * To check if the Airspy is still synced, the register 0 is dumped.  If the 4th
+ * bit is set, the device is still synced.  If not, the device is out of sync,
+ * and a warning is printed to stderr.
+
+ * Then, it converts the context parameter to a Process, and calls its method
+ * apply().  This call should be inlined when the program is optimised.
  *
  * This function delegates the processing instead of doing itself, because if we
  * wanted to handle another device kind, we would have to duplicate the process
@@ -92,8 +98,21 @@ Airspy::~Airspy() {
  * @param transfer The data received from the Airspy.
  */
 static int airspy_callback(airspy_transfer_t *transfer) {
-	auto *process = static_cast<Process<int16_t> *> (transfer->ctx);
-	int16_t *samples = (int16_t *) transfer->samples;
+	// Dump register and check if the airspy is still synced.
+	uint8_t value;
+	int result {airspy_si5351c_read(transfer->device, 0, &value)};
+	if (result != AIRSPY_SUCCESS) {
+		std::cerr << "Error: could not dump register." << std::endl;
+		std::cerr << airspy_error_name((airspy_error) result)
+			  << std::endl;
+	} else if (!(value & 0x10)) {
+		std::cerr << "Warning: Airspy out of sync." << std::endl;
+	}
+
+	// Processing input buffer
+	// Get back the process and the samples.
+	auto *process {static_cast<Process<int16_t> *> (transfer->ctx)};
+	int16_t *samples {(int16_t *) transfer->samples};
 
 	process->apply(samples, transfer->sample_count * 2);
 

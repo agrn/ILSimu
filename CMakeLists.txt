@@ -8,9 +8,9 @@ endif ()
 set(CMAKE_C_FLAGS "-Wall -Wextra -Werror -pedantic")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14")
 
-set(CMAKE_C_FLAGS_DEBUG "-ggdb")
+set(CMAKE_C_FLAGS_DEBUG "-Og -ggdb3")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -s -flto -march=native")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -flto -march=native -ggdb")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -ggdb3 -flto -march=native")
 set(CMAKE_C_FLAGS_MINSIZEREL "-Os -s -flto -march=native")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
@@ -23,5 +23,11 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 find_package(LIBAIRSPY REQUIRED)
 find_package(Threads REQUIRED)
 include_directories(${LIBAIRSPY_INCLUDE_DIR})
+
+find_program(CCACHE_PROGRAM ccache)
+if (CCACHE_PROGRAM)
+ set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+ set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+endif ()
 
 add_subdirectory(rasseiver)

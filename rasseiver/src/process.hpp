@@ -77,9 +77,7 @@ public:
 					       threshold)};
 		pos %= buf.size();
 
-		(void) saturation;
-
-		if (sender.send_vector<T>(output) <= 0) {
+		if (sender.send_vector<T>(output, saturation) <= 0) {
 			sender.reconnect();
 		}
 	}
