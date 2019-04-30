@@ -102,6 +102,38 @@ class Channel:
 channels = [None] * CHANNEL_AMOUNT
 # A lock to avoid write conflicts in the list of active channels.
 channels_mutex = asyncio.Lock()
+# A mutex to protect the reference channel.  Multiple async functions may try to
+# find the threshold of the reference channel, so it must be protected against
+# concurrent accesses.  This is not the case of other channels.
+reference_mutex = asyncio.Lock()
+
+
+async def try_to_synchronise(channel):
+    # Get the reference channel if it exists
+    reference = channels[0]
+
+    if reference is None or len(reference) == 0:
+        return
+
+    # Get the latest moduli of the current and reference channel.
+    c_last_mod = channel.last_modulus()
+    r_last_mod = reference.last_modulus()
+
+    # If the carrier started on both channels, do the actual synchronisation.
+    if c_last_mod > CARRIER_THRESHOLD and r_last_mod > CARRIER_THRESHOLD:
+        # Find the level of the current channel (intensity synchronisation).
+        channel.level = r_last_mod / c_last_mod
+        # TODO should be made against an average instead of a discrete value.
+
+        with (await reference_mutex):
+            reference.find_start()
+        channel.find_start()
+
+        # Compute the difference in offset between the peak of the reference
+        # channel and that of the current channel.
+        channel.offset = reference.start_at - channel.start_at
+        # Mark the channel as synchronised.
+        channel.synchronised = True
 
 
 async def listener(reader, writer):
@@ -163,6 +195,16 @@ async def listener(reader, writer):
                         n = 0
                     csv.write("{},\n".format(int(n)))
                     i += 2
+
+                # Insert the values in the current channel if it has not been
+                # synchronised, or if it is the reference channel and its start
+                # has not yet been found.
+                if not channel.synchronised or \
+                   (channel_id == 0 and not channel.start_found):
+                    channel.put(decoded)
+
+                if not channel.synchronised:
+                    await try_to_synchronise(channel)
 
     finally:
         print("{}:{} disconnected".format(ip, port))
