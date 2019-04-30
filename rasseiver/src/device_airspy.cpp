@@ -105,7 +105,7 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 		std::cerr << "Error: could not dump register." << std::endl;
 		std::cerr << airspy_error_name((airspy_error) result)
 			  << std::endl;
-	} else if (!(value & 0x10)) {
+	} else if (value & 0x10) {
 		std::cerr << "Warning: Airspy out of sync." << std::endl;
 	}
 
