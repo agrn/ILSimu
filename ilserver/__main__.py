@@ -2,27 +2,39 @@
 
 import array
 import asyncio
+import struct
 
 
 async def listener(reader, writer):
     ip, port = writer.get_extra_info("peername")
     print("Connection of {}:{}".format(ip, port))
 
-    with open("results.csv", "w") as csv:
-        while True:
-            data = await reader.read(2048)
-            if not data:
-                break
+    try:
+        with open("results.csv", "w") as csv:
+            while True:
+                header = await reader.read(9)
+                if not header:
+                    break
 
-            decoded = array.array("h", data)
-            i = 0
-            while i < len(decoded):
-                n = abs(complex(decoded[i], decoded[i + 1]))
-                csv.write("{},\n".format(int(n)))
-                i += 2
+                decoded_header = struct.unpack_from("<Q?", header)
 
-    print("{}:{} disconnected".format(ip, port))
-    writer.close()
+                data = await reader.read(decoded_header[0])
+                if not data:
+                    break
+
+                if decoded_header[1]:
+                    print("Saturation")
+
+                decoded = array.array("h", data)
+                i = 0
+                while i < len(decoded):
+                    n = abs(complex(decoded[i], decoded[i + 1]))
+                    csv.write("{},\n".format(int(n)))
+                    i += 2
+
+    finally:
+        print("{}:{} disconnected".format(ip, port))
+        writer.close()
 
 
 def main():
