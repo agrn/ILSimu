@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from contextlib import suppress
+from statistics import median
 
 import array
 import asyncio
@@ -121,19 +122,36 @@ async def try_to_synchronise(channel):
 
     # If the carrier started on both channels, do the actual synchronisation.
     if c_last_mod > CARRIER_THRESHOLD and r_last_mod > CARRIER_THRESHOLD:
-        # Find the level of the current channel (intensity synchronisation).
-        channel.level = r_last_mod / c_last_mod
-        # TODO should be made against an average instead of a discrete value.
-
         with (await reference_mutex):
             reference.find_start()
         channel.find_start()
+
+        # Compute the median of the modulis of the two channels *after* the
+        # start of the carrier
+        ref_moduli = []
+        chan_moduli = []
+        i = reference.start_at * 2
+        while i < len(reference.buffer):
+            ref_moduli.append(modulus_at(reference.buffer, i))
+            i += 2
+
+        i = channel.start_at * 2
+        while i < len(channel.buffer):
+            chan_moduli.append(modulus_at(channel.buffer, i))
+            i += 2
+
+        m_ref = median(ref_moduli)
+        m_chan = median(chan_moduli)
+
+        channel.level = m_ref / m_chan
 
         # Compute the difference in offset between the peak of the reference
         # channel and that of the current channel.
         channel.offset = reference.start_at - channel.start_at
         # Mark the channel as synchronised.
         channel.synchronised = True
+
+        print(channel.offset, channel.level, len(ref_moduli), len(chan_moduli))
 
 
 async def listener(reader, writer):
@@ -188,7 +206,7 @@ async def listener(reader, writer):
                     # CSV file.
 
                     if i >= 0:
-                        n = modulus_at(decoded, i)
+                        n = modulus_at(decoded, i) * channel.level
                     else:
                         # If the channel started after the reference channel,
                         # write zeros until it is synced.
