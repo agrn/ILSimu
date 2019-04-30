@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
+from contextlib import suppress
+
 import array
 import asyncio
 import struct
+
+
+BASE_CHANNEL = 10000
+CHANNEL_AMOUNT = 2
 
 
 async def listener(reader, writer):
@@ -39,18 +45,29 @@ async def listener(reader, writer):
 
 def main():
     loop = asyncio.get_event_loop()
-    coro = asyncio.start_server(listener, "127.0.0.1", 10000, loop=loop)
-    server = loop.run_until_complete(coro)
+    servers = []
+
+    for i in range(CHANNEL_AMOUNT):
+        coro = asyncio.start_server(listener, "127.0.0.1", BASE_CHANNEL + i,
+                                    loop=loop)
+        servers.append(loop.run_until_complete(coro))
 
     print("Listening…")
     try:
         loop.run_forever()
     except KeyboardInterrupt:
-        pass
+        print("KeyboardInterrupt")
+        for server in servers:
+            server.close()
 
-    server.close()
-    loop.run_until_complete(server.wait_closed())
-    loop.close()
+        for task in asyncio.Task.all_tasks():
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                loop.run_until_complete(task)
+    finally:
+        loop.stop()
+        loop.run_forever()
+        loop.close()
 
 
 if __name__ == "__main__":
