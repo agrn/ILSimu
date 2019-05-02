@@ -7,6 +7,7 @@ import array
 import asyncio
 import struct
 
+from complex_helpers import modulus_at
 
 BASE_CHANNEL = 10000     # First port to listen on
 CHANNEL_AMOUNT = 2       # Amount of servers to open.  The first server will
@@ -14,13 +15,6 @@ CHANNEL_AMOUNT = 2       # Amount of servers to open.  The first server will
                          # 1, etc.
 CARRIER_THRESHOLD = 1000 # Above this value, the carrier is supposed to be
                          # turned on.
-
-
-def modulus_at(samples, index):
-    """Computes the modulus of an IQ sample located at index, index + 1 in
-    samples."""
-    # abs() of a complex is the modulus of a complex number.
-    return abs(complex(samples[index], samples[index + 1]))
 
 
 class Channel:
