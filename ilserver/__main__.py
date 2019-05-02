@@ -9,12 +9,15 @@ import struct
 
 from complex_helpers import modulus_at
 
-BASE_CHANNEL = 10000     # First port to listen on
-CHANNEL_AMOUNT = 2       # Amount of servers to open.  The first server will
-                         # have the port BASE_CHANNEL, the second BASE_CHANNEL +
-                         # 1, etc.
-CARRIER_THRESHOLD = 1000 # Above this value, the carrier is supposed to be
-                         # turned on.
+# Fist port to listen on
+BASE_CHANNEL = 10000
+
+# Amount of servers to open.  The first server will have the port
+# BASE_CHANNEL, the second BASE_CHANNEL + 1, etc.
+CHANNEL_AMOUNT = 2
+
+# Above this value, the carrier is supposed to be turned on.
+CARRIER_THRESHOLD = 1000
 
 
 class Channel:
@@ -24,11 +27,12 @@ class Channel:
         # Should be 1 for the reference channel.
         self.level = 1
 
-        # The number of samples to remove to be time synced to the reference
-        # channel.  When this number is positive, the start of this channel came
-        # earlier than the start of the reference channel.  When it is negative,
-        # fake samples should be added.  After the samples have been dropped or
-        # added, the offset should be reset to 0.  Should be 0 for the reference
+        # The number of samples to remove to be time synced to the
+        # reference channel.  When this number is positive, the start
+        # of this channel came earlier than the start of the reference
+        # channel.  When it is negative, fake samples should be added.
+        # After the samples have been dropped or added, the offset
+        # should be reset to 0.  Should be 0 for the reference
         # channel.
         self.offset = 0
 
@@ -97,9 +101,10 @@ class Channel:
 channels = [None] * CHANNEL_AMOUNT
 # A lock to avoid write conflicts in the list of active channels.
 channels_mutex = asyncio.Lock()
-# A mutex to protect the reference channel.  Multiple async functions may try to
-# find the threshold of the reference channel, so it must be protected against
-# concurrent accesses.  This is not the case of other channels.
+# A mutex to protect the reference channel.  Multiple async functions
+# may try to find the threshold of the reference channel, so it must
+# be protected against concurrent accesses.  This is not the case of
+# other channels.
 reference_mutex = asyncio.Lock()
 
 
