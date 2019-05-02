@@ -7,6 +7,9 @@ import array
 import asyncio
 import struct
 
+import cmath
+import math
+
 
 BASE_CHANNEL = 10000     # First port to listen on
 CHANNEL_AMOUNT = 2       # Amount of servers to open.  The first server will
@@ -16,11 +19,37 @@ CARRIER_THRESHOLD = 1000 # Above this value, the carrier is supposed to be
                          # turned on.
 
 
+def complex_at(samples, index):
+    return samples[index] + samples[index + 1] * 1j
+
+
+def polar_at(samples, index):
+    return cmath.polar(complex_at(samples, index))
+
+
 def modulus_at(samples, index):
-    """Computes the modulus of an IQ sample located at index, index + 1 in
-    samples."""
-    # abs() of a complex is the modulus of a complex number.
-    return abs(complex(samples[index], samples[index + 1]))
+    modulus, _ = polar_at(samples, index)
+    return modulus
+
+
+def phase_at(samples, index):
+    _, phase = polar_at(samples, index)
+    return phase
+
+
+def change_phase(cpx, new_phase):
+    m = abs(cpx)
+    return complex(m * math.cos(new_phase), m * math.sin(new_phase))
+
+
+def change_phase_at(samples, index, new_phase):
+    return change_phase(complex_at(samples, index), new_phase)
+
+
+class BaseChannel:
+    def __init__(self):
+        self.pos = 0
+        self.buffer = []
 
 
 class Channel:
@@ -37,6 +66,8 @@ class Channel:
         # added, the offset should be reset to 0.  Should be 0 for the reference
         # channel.
         self.offset = 0
+
+        self.pos, self.delta = 0, 0
 
         # Stores all of the samples necessary for synchronisation.  For the
         # reference channel, stores everything until all channels have been
@@ -107,6 +138,7 @@ channels_mutex = asyncio.Lock()
 # find the threshold of the reference channel, so it must be protected against
 # concurrent accesses.  This is not the case of other channels.
 reference_mutex = asyncio.Lock()
+reference_event = asyncio.Condition()
 
 
 async def try_to_synchronise(channel):
@@ -148,10 +180,9 @@ async def try_to_synchronise(channel):
         # Compute the difference in offset between the peak of the reference
         # channel and that of the current channel.
         channel.offset = reference.start_at - channel.start_at
+        channel.delta = channel.offset
         # Mark the channel as synchronised.
         channel.synchronised = True
-
-        print(channel.offset, channel.level, len(ref_moduli), len(chan_moduli))
 
 
 async def listener(reader, writer):
@@ -174,6 +205,7 @@ async def listener(reader, writer):
         # The reference channel is synchronised with itself.
         if channel_id == 0:
             channel.synchronised = True
+            await reference_event.acquire()
 
     try:
         with open("results-{}.csv".format(channel_id), "w") as csv:
@@ -206,23 +238,46 @@ async def listener(reader, writer):
                     # CSV file.
 
                     if i >= 0:
-                        n = modulus_at(decoded, i) * channel.level
+                        if channel_id > 0:
+                            modulus = modulus_at(decoded, i) * channel.level
+
+                            async with reference_event:
+                                await reference_event.wait(channels[0].pos < channel.pos + 1)
+
+                            phase = channels[0].buffer[channel.pos + 1]
+                        else:
+                            modulus, phase = polar_at(decoded, i)
+
+                        # n = modulus_at(decoded, i) * channel.level
                     else:
                         # If the channel started after the reference channel,
                         # write zeros until it is synced.
-                        n = 0
-                    csv.write("{},\n".format(int(n)))
+                        modulus, phase = 0, 0
+                        # n = 0
+
+                    csv.write("{},{}\n".format(modulus, phase))
+                    # csv.write("{},{}\n".format(n,
+                    #                            cmath.phase(
+                    #                                complex(decoded[i],
+                    #                                        decoded[i + 1]))))
                     i += 2
+                    channel.pos += 2
 
                 # Insert the values in the current channel if it has not been
                 # synchronised, or if it is the reference channel and its start
                 # has not yet been found.
-                if not channel.synchronised or \
-                   (channel_id == 0 and not channel.start_found):
+                # if not channel.synchronised or \
+                #    (channel_id == 0 and not channel.start_found):
+                if not channel.synchronised or channel_id == 0:
                     channel.put(decoded)
 
-                if not channel.synchronised:
-                    await try_to_synchronise(channel)
+                    if channel_id == 0:
+                        reference_event.notify_all()
+                    else:
+                        await try_to_synchronise(channel)
+
+                # if not channel.synchronised:
+                #     await try_to_synchronise(channel)
 
     finally:
         print("{}:{} disconnected".format(ip, port))
@@ -232,6 +287,9 @@ async def listener(reader, writer):
         # to connect.
         with (await channels_mutex):
             channels[channel_id] = None
+
+        if channel_id == 0:
+            reference_event.release()
 
 
 def main():
