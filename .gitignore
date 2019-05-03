@@ -1,4 +1,14 @@
+# Editor-specific files
 .clang_complete
 .dir-locals.el
+
+# Generated files
 build/
 Doxy/
+
+# ILServer test files
+*.csv
+*.png
+
+# Python
+__pycache__/
