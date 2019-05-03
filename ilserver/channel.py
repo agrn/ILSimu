@@ -26,8 +26,6 @@ class Channel:
         # reference channel, stores everything until all channels have been
         # synchronised.
         self.buffer = []
-        self.position = 0
-        self.processed_buffer = []
 
         # Indicates whether this channel is synchronised with the reference
         # channel.  Should be true for the reference channel.
@@ -39,8 +37,6 @@ class Channel:
         # The position of the start of the carrier in the buffer, divided by
         # two.
         self.start_at = 0
-
-        self.processed_until = 0
 
         self.median = 0
 
@@ -100,17 +96,21 @@ class Channel:
         self.median = median(moduli)
 
     async def process_buffer(self, buffer, reference):
-        self.buffer += buffer
-
-        if reference is None or len(reference) == 0:
-            return
-
         if not self.synchronised:
-            await self.__try_to_synchronise(reference)
-        else:
-            pass
+            self.buffer += buffer
 
-    async def __try_to_synchronise(self, reference):
+            if reference is not None and len(reference) > 0 and \
+               reference.start_found:
+                self.__try_to_synchronise(reference)
+        else:
+            i = self.get_index_to_sync()
+            if i < 0:
+                self.buffer += [0] * -i
+                self.buffer += buffer
+            else:
+                self.buffer += buffer[i:]
+
+    def __try_to_synchronise(self, reference):
         c_last_mod = self.last_modulus()
         r_last_mod = reference.last_modulus()
 
@@ -141,10 +141,9 @@ class ReferenceChannel(Channel):
 
             if not self.start_found:
                 self.buffer += buffer
-                self.position += len(buffer) // 2
 
                 # bypass the mutex as it is already acquired
                 super(ReferenceChannel, self).find_start()
 
             else:
-                self.processed_buffer += buffer
+                self.buffer += buffer

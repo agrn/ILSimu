@@ -38,49 +38,56 @@ async def listener(reader, writer):
             channel = Channel()
         else:
             channel = ReferenceChannel()
+            csv = open("results.csv", "w")
 
         channels[channel_id] = channel
 
     try:
-        with open("results-{}.csv".format(channel_id), "w") as csv:
-            while True:
-                # Receive the header and decode it
-                header = await reader.read(9)
-                if not header:
-                    break
+        while True:
+            # Receive the header and decode it
+            header = await reader.read(9)
+            if not header:
+                break
 
-                # The header received contains an uint64_t (number of bytes of
-                # data) and a boolean in little endian.
-                decoded_header = struct.unpack_from("<Q?", header)
+            # The header received contains an uint64_t (number of bytes of
+            # data) and a boolean in little endian.
+            decoded_header = struct.unpack_from("<Q?", header)
 
-                # Read the specified amount of bytes
-                data = await reader.read(decoded_header[0])
-                if not data:
-                    break
+            # Read the specified amount of bytes
+            data = await reader.read(decoded_header[0])
+            if not data:
+                break
 
-                # If the data is saturating, print a warning
-                if decoded_header[1]:
-                    print("Saturation")
+            # If the data is saturating, print a warning
+            if decoded_header[1]:
+                print("Saturation")
 
-                # Decode the data as an array of int16_t
-                decoded = array.array("h", data)
+            # Decode the data as an array of int16_t
+            decoded = array.array("h", data)
 
-                # Drop samples (or add them if this number is negative).
-                i = channel.get_index_to_sync()
-                while i < len(decoded):
-                    # Compute the modulus of each IQ sample, and write it to a
-                    # CSV file.
+            await channel.process_buffer(decoded, channels[0])
 
-                    if i >= 0:
-                        n = modulus_at(decoded, i) * channel.level
-                    else:
-                        # If the channel started after the reference channel,
-                        # write zeros until it is synced.
-                        n = 0
-                    csv.write("{},\n".format(int(n)))
+            parcours_max = min([len(ch)
+                                if ch is not None and ch.synchronised
+                                else 0
+                                for ch in channels]) * 2
+
+            if channel_id == 0:
+                i = 0
+                while i < parcours_max:
+                    for j, ch in enumerate(channels):
+                        n = modulus_at(ch.buffer, i) * ch.level
+                        csv.write("{}".format(n))
+
+                        if j < len(channels) - 1:
+                            csv.write(",")
+
+                    csv.write("\n")
                     i += 2
 
-                await channel.process_buffer(decoded, channels[0])
+                for ch in channels:
+                    if ch is not None:
+                        del ch.buffer[:parcours_max]
 
     finally:
         print("{}:{} disconnected".format(ip, port))
@@ -90,6 +97,9 @@ async def listener(reader, writer):
         # to connect.
         with (await channels_mutex):
             channels[channel_id] = None
+
+        if channel_id == 0:
+            csv.close()
 
 
 def main():
