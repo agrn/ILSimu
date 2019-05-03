@@ -26,6 +26,7 @@ class Channel:
         # reference channel, stores everything until all channels have been
         # synchronised.
         self.buffer = []
+        self.position = 0
         self.processed_buffer = []
 
         # Indicates whether this channel is synchronised with the reference
@@ -40,6 +41,8 @@ class Channel:
         self.start_at = 0
 
         self.processed_until = 0
+
+        self.median = 0
 
     def __len__(self):
         """Returns the amount of IQ samples in the buffer."""
@@ -80,11 +83,21 @@ class Channel:
                     m = modulus
                 i += 2
 
+            if self.start_found:
+                self.__median_of_buffer()
+
     def get_index_to_sync(self):
         start = self.offset * -2
         self.offset = 0
         return start
 
+    def __median_of_buffer(self):
+        moduli = []
+        i = self.start_at * 2
+        while i < len(self.buffer):
+            moduli.append(modulus_at(self.buffer, i))
+            i += 2
+        self.median = median(moduli)
 
     async def process_buffer(self, buffer, reference):
         self.buffer += buffer
@@ -102,26 +115,9 @@ class Channel:
         r_last_mod = reference.last_modulus()
 
         if c_last_mod > CARRIER_THRESHOLD and r_last_mod > CARRIER_THRESHOLD:
-            await reference.find_start()
             self.find_start()
 
-            ref_moduli = []
-            chan_moduli = []
-
-            i = reference.start_at * 2
-            while i < len(reference.buffer):
-                ref_moduli.append(modulus_at(reference.buffer, i))
-                i += 2
-
-            i = self.start_at * 2
-            while i < len(self.buffer):
-                chan_moduli.append(modulus_at(self.buffer, i))
-                i += 2
-
-            m_ref = median(ref_moduli)
-            m_chan = median(chan_moduli)
-
-            self.level = m_ref / m_chan
+            self.level = reference.median / self.median
 
             self.offset = reference.start_at - self.start_at
             self.synchronised = True
@@ -142,4 +138,13 @@ class ReferenceChannel(Channel):
     async def process_buffer(self, buffer, reference):
         with (await self.mutex):
             assert reference == self
-            self.buffer += buffer
+
+            if not self.start_found:
+                self.buffer += buffer
+                self.position += len(buffer) // 2
+
+                # bypass the mutex as it is already acquired
+                super(ReferenceChannel, self).find_start()
+
+            else:
+                self.processed_buffer += buffer
