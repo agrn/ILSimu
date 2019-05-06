@@ -5,4 +5,4 @@ sample_type = int
 decimation = 60
 filter = LPDFilter.fcf # Replace this by the real file
 host = 127.0.0.1
-port = 10000
+port = 10001
