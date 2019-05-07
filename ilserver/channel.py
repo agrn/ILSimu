@@ -2,7 +2,9 @@ from statistics import median
 
 import asyncio
 
-from complex_helpers import modulus_at
+import numpy as np
+
+from complex_helpers import flat_list_to_complex
 from constants import CARRIER_THRESHOLD
 
 
@@ -42,15 +44,15 @@ class Channel:
 
     def __len__(self):
         """Returns the amount of IQ samples in the buffer."""
-        return len(self.buffer) // 2
+        return len(self.buffer)
 
     def put(self, buffer):
         """Insert buffer at the end of the channel buffer.."""
-        self.buffer += buffer
+        self.buffer += flat_list_to_complex(buffer)
 
     def last_modulus(self):
         """Returns the modulus of the last sample in the buffer."""
-        return modulus_at(self.buffer, -2)
+        return abs(self.buffer[-1])
 
     def find_start(self):
         """Finds the start of the carrier in the buffer.  If found,
@@ -71,44 +73,38 @@ class Channel:
         if not self.start_found:
             # Basically a max function, but with modulus of IQ samples and a
             # threshold.
-            while i < len(self.buffer):
-                modulus = modulus_at(self.buffer, i)
+            for i, modulus in enumerate(np.absolute(self.buffer)):
                 if modulus > CARRIER_THRESHOLD and modulus > m:
                     self.start_found = True
-                    self.start_at = i // 2
+                    self.start_at = i
                     m = modulus
-                i += 2
 
             if self.start_found:
                 self.__median_of_buffer()
 
     def get_index_to_sync(self):
-        start = self.offset * -2
+        start = self.offset
         self.offset = 0
         return start
 
     def __median_of_buffer(self):
-        moduli = []
-        i = self.start_at * 2
-        while i < len(self.buffer):
-            moduli.append(modulus_at(self.buffer, i))
-            i += 2
+        moduli = np.absolute(self.buffer[self.start_at:])
         self.median = median(moduli)
 
     async def process_buffer(self, buffer, reference):
         if not self.synchronised:
-            self.buffer += buffer
+            self.put(buffer)
 
             if reference is not None and len(reference) > 0 and \
                reference.start_found:
                 self.__try_to_synchronise(reference)
         else:
             i = self.get_index_to_sync()
-            if i < 0:
-                self.buffer += [0] * -i
-                self.buffer += buffer
+            if i > 0:
+                self.buffer += [0j] * i
+                self.put(buffer)
             else:
-                self.buffer += buffer[i:]
+                self.put(buffer[-2 * i:])
 
     def __try_to_synchronise(self, reference):
         c_last_mod = self.last_modulus()
@@ -139,11 +135,7 @@ class ReferenceChannel(Channel):
         with (await self.mutex):
             assert reference == self
 
+            self.put(buffer)
             if not self.start_found:
-                self.buffer += buffer
-
                 # bypass the mutex as it is already acquired
                 super(ReferenceChannel, self).find_start()
-
-            else:
-                self.buffer += buffer

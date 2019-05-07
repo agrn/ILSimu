@@ -6,8 +6,9 @@ import array
 import asyncio
 import struct
 
+import cmath
+
 from channel import Channel, ReferenceChannel
-from complex_helpers import modulus_at
 from constants import BASE_CHANNEL
 
 # Amount of servers to open.  The first server will have the port
@@ -67,23 +68,25 @@ async def listener(reader, writer):
 
             await channel.process_buffer(decoded, channels[0])
 
-            parcours_max = min([len(ch)
-                                if ch is not None and ch.synchronised
-                                else 0
-                                for ch in channels]) * 2
-
             if channel_id == 0:
+                parcours_max = min([len(ch)
+                                    if ch is not None and ch.synchronised
+                                    else 0
+                                    for ch in channels])
+
                 i = 0
                 while i < parcours_max:
                     for j, ch in enumerate(channels):
-                        n = modulus_at(ch.buffer, i) * ch.level
-                        csv.write("{}".format(n))
+                        r, p = cmath.polar(ch.buffer[i])
+                        r *= ch.level
+
+                        csv.write("{},{}".format(r, p))
 
                         if j < len(channels) - 1:
                             csv.write(",")
 
                     csv.write("\n")
-                    i += 2
+                    i += 1
 
                 for ch in channels:
                     if ch is not None:
