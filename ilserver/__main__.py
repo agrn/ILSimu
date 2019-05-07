@@ -8,6 +8,8 @@ import struct
 
 import cmath
 
+import numpy as np
+
 from channel import Channel, ReferenceChannel
 from constants import BASE_CHANNEL
 
@@ -79,6 +81,7 @@ async def listener(reader, writer):
                     for j, ch in enumerate(channels):
                         r, p = cmath.polar(ch.buffer[i])
                         r *= ch.level
+                        p = ((p + np.pi + ch.phase_delta) % (2 * np.pi)) - np.pi
 
                         csv.write("{},{}".format(r, p))
 

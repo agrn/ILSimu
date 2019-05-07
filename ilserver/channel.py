@@ -1,5 +1,3 @@
-from statistics import median
-
 import asyncio
 
 import numpy as np
@@ -41,6 +39,7 @@ class Channel:
         self.start_at = 0
 
         self.median = 0
+        self.phase_delta = 0
 
     def __len__(self):
         """Returns the amount of IQ samples in the buffer."""
@@ -89,7 +88,13 @@ class Channel:
 
     def __median_of_buffer(self):
         moduli = np.absolute(self.buffer[self.start_at:])
-        self.median = median(moduli)
+        self.median = np.median(moduli)
+
+    def __delta_of_phase(self, reference):
+        ref_phase = np.array(np.angle(reference.buffer[reference.start_at:]))
+        ch_phase = np.array(np.angle(self.buffer[self.start_at:]))
+        length = min(len(ref_phase), len(ch_phase))
+        self.phase_delta = np.median(ref_phase[:length] - ch_phase[:length])
 
     async def process_buffer(self, buffer, reference):
         if not self.synchronised:
@@ -112,13 +117,14 @@ class Channel:
 
         if c_last_mod > CARRIER_THRESHOLD and r_last_mod > CARRIER_THRESHOLD:
             self.find_start()
+            self.__delta_of_phase(reference)
 
             self.level = reference.median / self.median
 
             self.offset = reference.start_at - self.start_at
             self.synchronised = True
 
-            print(self.offset, self.level)
+            print(self.offset, self.level, self.phase_delta)
 
 
 class ReferenceChannel(Channel):
