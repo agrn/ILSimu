@@ -3,6 +3,7 @@
 // Signal handling
 #include <csignal>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "circular_buffer.hpp"
 #include "config.hpp"
@@ -19,8 +20,8 @@
  * @param set List of signals to wait for.
  * @param filter The filter to be used on the input signal.
  */
-void run_airspy(ConfigMap const &config, sigset_t const &set,
-		Filter const &filter) {
+static void run_airspy(ConfigMap const &config, sigset_t const &set,
+		       Filter const &filter) {
 	Airspy airspy {config.at("frequency"),
 			config.at("sample_rate"),
 			AIRSPY_SAMPLE_INT16_IQ};
@@ -34,8 +35,21 @@ void run_airspy(ConfigMap const &config, sigset_t const &set,
 	// Start receiving data from the Airspy
 	Receiver<Airspy, int16_t> receiver {airspy, process};
 
-	// Wait until we receive a signal
-	sigwait(&set, &sig);
+	do {
+		alarm(1);
+
+		// Wait until we receive a signal
+		sigwait(&set, &sig);
+
+		// Check every second that the Airspy is still streaming
+	} while (sig == SIGALRM && airspy.is_streaming());
+
+	if (sig == SIGALRM) {
+		// If the signal received is an alarm and we are outside of the
+		// loop, it means the Airspy stopped streaming.  In this case,
+		// throw an exception.
+		throw std::runtime_error {"Airspy stopped streaming"};
+	}
 
 	// Stop receiving data from the Airspy, clear the process and close the
 	// Airspy.  This is automatically handled by the compiler thanks to
@@ -45,15 +59,16 @@ void run_airspy(ConfigMap const &config, sigset_t const &set,
 /**
  * Init a sigset_t and use it as a signal mask for every threads.
  *
- * The initialisation step consists of clearing the mask, and adding SIGINT and
- * SIGTERM to the mask.
+ * The initialisation step consists of clearing the mask, and adding SIGINT,
+ * SIGTERM and SIGALRM to the mask.
  *
  * @param set The signal set to init.
  */
-int setup_sigmask(sigset_t &set) {
+static int setup_sigmask(sigset_t &set) {
 	sigemptyset(&set);
 	sigaddset(&set, SIGINT);
 	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGALRM);
 
 	if (pthread_sigmask(SIG_BLOCK, &set, nullptr)) {
 		perror("pthread_sigmask()");

@@ -50,6 +50,8 @@ public:
 	 */
 	~Airspy() override;
 
+	bool is_streaming();
+
 	void set_frequency(unsigned int frequency);
 	void set_sample_rate(unsigned int sample_rate);
 	void set_sample_type(airspy_sample_type sample_type);

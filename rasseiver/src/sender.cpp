@@ -40,9 +40,9 @@ void Fd::close() {
 Sender::Sender(std::string const &address, uint16_t port):
 	address {address}, port {port} {
 	if (reconnect() != 0) {
-		throw std::runtime_error(
+		throw std::runtime_error {
 			"Failed to connect to " + address + ":" + std::to_string(port) + ": " +
-			std::strerror(errno));
+			std::strerror(errno)};
 	}
 }
 

@@ -10,7 +10,7 @@ Airspy::Airspy(unsigned int frequency, unsigned int sample_rate,
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_open() failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 
 	set_frequency(frequency);
@@ -26,12 +26,16 @@ Airspy::Airspy(uint32_t serial_num, unsigned int frequency,
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_open_sn() failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 
 	set_frequency(frequency);
 	set_sample_rate(sample_rate);
 	set_sample_type(sample_type);
+}
+
+bool Airspy::is_streaming() {
+	return airspy_is_streaming(device);
 }
 
 void Airspy::set_frequency(unsigned int frequency) {
@@ -41,7 +45,7 @@ void Airspy::set_frequency(unsigned int frequency) {
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_freq failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 }
 
@@ -53,7 +57,7 @@ void Airspy::set_sample_rate(unsigned int sample_rate) {
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_samplerate failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 }
 
@@ -65,7 +69,7 @@ void Airspy::set_sample_type(airspy_sample_type sample_type) {
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_sample_type() failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 }
 
@@ -109,6 +113,10 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 		std::cerr << "Warning: Airspy out of sync." << std::endl;
 	}
 
+	if (transfer->dropped_samples > 0) {
+		std::cerr << "Dropped samples" << std::endl;
+	}
+
 	// Processing input buffer
 	// Get back the process and the samples.
 	auto *process {static_cast<Process<int16_t> *> (transfer->ctx)};
@@ -120,7 +128,14 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 }
 
 void Airspy::receive(Process<int16_t> &process) {
-	airspy_start_rx(device, airspy_callback, (void *) &process);
+	auto result {airspy_start_rx(device, airspy_callback,
+				     (void *) &process)};
+
+	if (result != AIRSPY_SUCCESS) {
+		throw std::runtime_error {
+			std::string {"airspy_start_rx() failed: "} +
+			airspy_error_name((airspy_error) result)};
+	}
 }
 
 void Airspy::stop() {

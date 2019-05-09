@@ -40,7 +40,7 @@ using ConfigMap = std::map<std::string, ConfigValue>;
 /**
  * The default configuration. Set to use an Airspy device at a frequency of
  * 111.1 MHz, 2.5 MSPS, sample integers, decimate at a factor of 60, and connect
- * to the server at 127.0.0.1:10000.
+ * to the server at 127.0.0.1:10001.
  */
 const ConfigMap config_default {
 	{"device", ConfigValue {"airspy"}},
@@ -49,7 +49,7 @@ const ConfigMap config_default {
 	{"sample_type", ConfigValue {"int"}},
 	{"decimation", ConfigValue {"60"}},
 	{"host", ConfigValue {"127.0.0.1"}},
-	{"port", ConfigValue {"10000"}},
+	{"port", ConfigValue {"10001"}},
 };
 
 /**
