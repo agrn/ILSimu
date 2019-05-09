@@ -5,7 +5,7 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug")
 endif ()
 
-set(CMAKE_C_FLAGS "-Wall -Wextra -Werror -pedantic")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wmissing-declarations -Werror -pedantic")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14")
 
 set(CMAKE_C_FLAGS_DEBUG "-Og -ggdb3")

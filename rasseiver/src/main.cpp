@@ -20,8 +20,8 @@
  * @param set List of signals to wait for.
  * @param filter The filter to be used on the input signal.
  */
-void run_airspy(ConfigMap const &config, sigset_t const &set,
-		Filter const &filter) {
+static void run_airspy(ConfigMap const &config, sigset_t const &set,
+		       Filter const &filter) {
 	Airspy airspy {config.at("frequency"),
 			config.at("sample_rate"),
 			AIRSPY_SAMPLE_INT16_IQ};
@@ -64,7 +64,7 @@ void run_airspy(ConfigMap const &config, sigset_t const &set,
  *
  * @param set The signal set to init.
  */
-int setup_sigmask(sigset_t &set) {
+static int setup_sigmask(sigset_t &set) {
 	sigemptyset(&set);
 	sigaddset(&set, SIGINT);
 	sigaddset(&set, SIGTERM);
