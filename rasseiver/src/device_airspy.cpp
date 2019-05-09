@@ -10,7 +10,7 @@ Airspy::Airspy(unsigned int frequency, unsigned int sample_rate,
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_open() failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 
 	set_frequency(frequency);
@@ -26,7 +26,7 @@ Airspy::Airspy(uint32_t serial_num, unsigned int frequency,
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_open_sn() failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 
 	set_frequency(frequency);
@@ -45,7 +45,7 @@ void Airspy::set_frequency(unsigned int frequency) {
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_freq failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 }
 
@@ -57,7 +57,7 @@ void Airspy::set_sample_rate(unsigned int sample_rate) {
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_samplerate failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 }
 
@@ -69,7 +69,7 @@ void Airspy::set_sample_type(airspy_sample_type sample_type) {
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_sample_type() failed: "
 			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error(airspy_error_name(result));
+		throw std::runtime_error {airspy_error_name(result)};
 	}
 }
 
