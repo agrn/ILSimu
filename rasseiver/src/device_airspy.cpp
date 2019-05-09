@@ -113,6 +113,10 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 		std::cerr << "Warning: Airspy out of sync." << std::endl;
 	}
 
+	if (transfer->dropped_samples > 0) {
+		std::cerr << "Dropped samples" << std::endl;
+	}
+
 	// Processing input buffer
 	// Get back the process and the samples.
 	auto *process {static_cast<Process<int16_t> *> (transfer->ctx)};
@@ -124,7 +128,14 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 }
 
 void Airspy::receive(Process<int16_t> &process) {
-	airspy_start_rx(device, airspy_callback, (void *) &process);
+	auto result {airspy_start_rx(device, airspy_callback,
+				     (void *) &process)};
+
+	if (result != AIRSPY_SUCCESS) {
+		throw std::runtime_error {
+			std::string {"airspy_start_rx() failed: "} +
+			airspy_error_name((airspy_error) result)};
+	}
 }
 
 void Airspy::stop() {
