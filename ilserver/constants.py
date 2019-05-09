@@ -2,4 +2,4 @@
 BASE_CHANNEL = 10001
 
 # Above this value, the carrier is supposed to be turned on.
-CARRIER_THRESHOLD = 1000
+CARRIER_THRESHOLD = 940

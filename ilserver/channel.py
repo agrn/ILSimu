@@ -142,6 +142,9 @@ class ReferenceChannel(Channel):
             assert reference == self
 
             self.put(buffer)
-            if not self.start_found:
+            if self.start_found:
+                self.start_found = \
+                    np.average(np.absolute(buffer)) >= CARRIER_THRESHOLD / 2
+            else:
                 # bypass the mutex as it is already acquired
                 super(ReferenceChannel, self).find_start()
