@@ -34,6 +34,10 @@ Airspy::Airspy(uint32_t serial_num, unsigned int frequency,
 	set_sample_type(sample_type);
 }
 
+bool Airspy::is_streaming() {
+	return airspy_is_streaming(device);
+}
+
 void Airspy::set_frequency(unsigned int frequency) {
 	airspy_error result;
 
