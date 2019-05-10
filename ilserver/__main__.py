@@ -38,7 +38,7 @@ async def listener(reader, writer):
             return
 
         if channel_id > 0:
-            channel = Channel()
+            channel = Channel(channel_id)
         else:
             channel = ReferenceChannel()
             csv = open("results.csv", "w")

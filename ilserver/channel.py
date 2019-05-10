@@ -7,7 +7,7 @@ from constants import CARRIER_THRESHOLD
 
 
 class Channel:
-    def __init__(self):
+    def __init__(self, num):
         # Represents the factor by which the values of this channel should be
         # multiplied by to be equivalent to those of the reference channel.
         # Should be 1 for the reference channel.
@@ -40,6 +40,8 @@ class Channel:
 
         self.median = 0
         self.phase_delta = 0
+
+        self.num = num
 
     def __len__(self):
         """Returns the amount of IQ samples in the buffer."""
@@ -124,12 +126,13 @@ class Channel:
             self.offset = reference.start_at - self.start_at
             self.synchronised = True
 
-            print(self.offset, self.level, self.phase_delta)
+            print("Channel", self.num, self.offset, self.level,
+                  self.phase_delta)
 
 
 class ReferenceChannel(Channel):
     def __init__(self):
-        super(ReferenceChannel, self).__init__()
+        super(ReferenceChannel, self).__init__(0)
         self.synchronised = True
         self.mutex = asyncio.Lock()
 
