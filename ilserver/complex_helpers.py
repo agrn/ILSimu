@@ -1,8 +1,13 @@
-def change_phase(cpx, new_phase):
-    """Change the phase of a complex number without changing its
-    modulus."""
-    m = abs(cpx)
-    return complex(m * cmath.cos(new_phase), m * cmath.sin(new_phase))
+import cmath
+
+import numpy as np
+
+
+def compensate_cpx(cpx, amplification, phase):
+    r, p = cmath.polar(cpx)
+    r *= amplification
+    p = p + phase
+    return complex(r * np.cos(p), r * np.sin(p))
 
 
 def flat_list_to_complex(lst):
