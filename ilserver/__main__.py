@@ -11,6 +11,7 @@ import cmath
 import numpy as np
 
 from channel import Channel, ReferenceChannel
+from complex_helpers import compensate_cpx
 from constants import BASE_CHANNEL
 
 # Amount of servers to open.  The first server will have the port
@@ -76,24 +77,28 @@ async def listener(reader, writer):
                                     else 0
                                     for ch in channels])
 
-                i = 0
-                while i < parcours_max:
-                    for j, ch in enumerate(channels):
-                        r, p = cmath.polar(ch.buffer[i])
-                        r *= ch.level
-                        p = ((p + np.pi + ch.phase_delta) % (2 * np.pi)) - np.pi
+                if parcours_max < 1024:
+                    parcours_max = 0
+                else:
+                    parcours_max = 1024
 
-                        csv.write("{},{}".format(r, p))
+                    i = 0
+                    res = np.array(channel.buffer[:1024])
+                    del channel.buffer[:1024]
 
-                        if j < len(channels) - 1:
-                            csv.write(",")
+                    for ch in channels[1:]:
+                        c = np.array([0j] * 1024)
+                        for i in range(1024):
+                            c[i] = compensate_cpx(ch.buffer[i],
+                                                  ch.level,
+                                                  ch.phase_delta)
 
-                    csv.write("\n")
-                    i += 1
+                        res += c
+                        del ch.buffer[:1024]
 
-                for ch in channels:
-                    if ch is not None:
-                        del ch.buffer[:parcours_max]
+                    for v in res:
+                        r, p = cmath.polar(v)
+                        csv.write("{},{}\n".format(r, p))
 
     finally:
         print("{}:{} disconnected".format(ip, port))
