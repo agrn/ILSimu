@@ -26,6 +26,8 @@ channels_mutex = asyncio.Lock()
 
 executor = ThreadPoolExecutor(max_workers=1)
 
+phase_shift = [0] * CHANNEL_AMOUNT
+
 
 def process_channel(loop, decoded, channel):
     channel.process_buffer(decoded, channels[0])
@@ -38,10 +40,12 @@ def process_channel(loop, decoded, channel):
 
         nb_it = parcours_max // PACKET_SIZE
         for _ in range(nb_it):
+            shift = phase_shift.copy()
+
             res = np.array([0j] * PACKET_SIZE)
             for i, ch in enumerate(channels):
                 c = compensate_cpx(ch.buffer[:PACKET_SIZE], ch.level,
-                                   ch.phase_delta)
+                                   ch.phase_delta + shift[i])
 
                 res += c
                 del ch.buffer[:PACKET_SIZE]
