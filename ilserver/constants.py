@@ -3,3 +3,6 @@ BASE_CHANNEL = 10001
 
 # Above this value, the carrier is supposed to be turned on.
 CARRIER_THRESHOLD = 940
+
+#
+PACKET_SIZE = 1024
