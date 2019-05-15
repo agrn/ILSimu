@@ -1,5 +1,3 @@
-import asyncio
-
 import numpy as np
 
 from complex_helpers import flat_list_to_complex
@@ -98,7 +96,7 @@ class Channel:
         length = min(len(ref_phase), len(ch_phase))
         self.phase_delta = np.median(ref_phase[:length] - ch_phase[:length])
 
-    async def process_buffer(self, buffer, reference):
+    def process_buffer(self, buffer, reference):
         if not self.synchronised:
             self.put(buffer)
 
@@ -134,20 +132,13 @@ class ReferenceChannel(Channel):
     def __init__(self):
         super(ReferenceChannel, self).__init__(0)
         self.synchronised = True
-        self.mutex = asyncio.Lock()
 
-    async def find_start(self, *args, **kwargs):
-        with (await self.mutex):
-            super(ReferenceChannel, self).find_start(*args, **kwargs)
+    def process_buffer(self, buffer, reference):
+        assert reference == self
 
-    async def process_buffer(self, buffer, reference):
-        with (await self.mutex):
-            assert reference == self
-
-            self.put(buffer)
-            if self.start_found:
-                self.start_found = \
-                    np.average(np.absolute(buffer)) >= CARRIER_THRESHOLD / 2
-            else:
-                # bypass the mutex as it is already acquired
-                super(ReferenceChannel, self).find_start()
+        self.put(buffer)
+        if self.start_found:
+            self.start_found = \
+                np.average(np.absolute(buffer)) >= CARRIER_THRESHOLD / 2
+        else:
+            self.find_start()
