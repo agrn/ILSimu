@@ -1,13 +1,13 @@
-import cmath
-
 import numpy as np
 
 
 def compensate_cpx(cpx, amplification, phase):
-    r, p = cmath.polar(cpx)
+    r, p = np.absolute(cpx), np.angle(cpx)
     r *= amplification
     p = p + phase
-    return complex(r * np.cos(p), r * np.sin(p))
+    i, q = r * np.cos(p), r * np.sin(p)
+
+    return [complex(a, b) for a, b in zip(i, q)]
 
 
 def flat_list_to_complex(lst):

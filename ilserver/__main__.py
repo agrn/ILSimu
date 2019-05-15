@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from contextlib import suppress
+from concurrent.futures import ThreadPoolExecutor
 
 import array
 import asyncio
@@ -12,7 +13,7 @@ import numpy as np
 
 from channel import Channel, ReferenceChannel
 from complex_helpers import compensate_cpx
-from constants import BASE_CHANNEL
+from constants import BASE_CHANNEL, PACKET_SIZE
 
 # Amount of servers to open.  The first server will have the port
 # BASE_CHANNEL, the second BASE_CHANNEL + 1, etc.
@@ -23,8 +24,30 @@ channels = [None] * CHANNEL_AMOUNT
 # A lock to avoid write conflicts in the list of active channels.
 channels_mutex = asyncio.Lock()
 
+executor = ThreadPoolExecutor(max_workers=1)
 
-async def listener(reader, writer):
+
+def process_channel(loop, decoded, channel):
+    channel.process_buffer(decoded, channels[0])
+
+    if channel.num == 0:
+        parcours_max = min([len(ch)
+                            if ch is not None and ch.synchronised
+                            else 0
+                            for ch in channels])
+
+        nb_it = parcours_max // PACKET_SIZE
+        for _ in range(nb_it):
+            res = np.array([0j] * PACKET_SIZE)
+            for i, ch in enumerate(channels):
+                c = compensate_cpx(ch.buffer[:PACKET_SIZE], ch.level,
+                                   ch.phase_delta)
+
+                res += c
+                del ch.buffer[:PACKET_SIZE]
+
+
+async def channel_listener(reader, writer):
     ip, port = writer.get_extra_info("peername")
     _, host_port = writer.get_extra_info("sockname")
     channel_id = host_port - BASE_CHANNEL
@@ -42,7 +65,6 @@ async def listener(reader, writer):
             channel = Channel(channel_id)
         else:
             channel = ReferenceChannel()
-            csv = open("results.csv", "w")
 
         channels[channel_id] = channel
 
@@ -69,36 +91,9 @@ async def listener(reader, writer):
             # Decode the data as an array of int16_t
             decoded = array.array("h", data)
 
-            await channel.process_buffer(decoded, channels[0])
-
-            if channel_id == 0:
-                parcours_max = min([len(ch)
-                                    if ch is not None and ch.synchronised
-                                    else 0
-                                    for ch in channels])
-
-                if parcours_max < 1024:
-                    parcours_max = 0
-                else:
-                    parcours_max = 1024
-
-                    i = 0
-                    res = np.array(channel.buffer[:1024])
-                    del channel.buffer[:1024]
-
-                    for ch in channels[1:]:
-                        c = np.array([0j] * 1024)
-                        for i in range(1024):
-                            c[i] = compensate_cpx(ch.buffer[i],
-                                                  ch.level,
-                                                  ch.phase_delta)
-
-                        res += c
-                        del ch.buffer[:1024]
-
-                    for v in res:
-                        r, p = cmath.polar(v)
-                        csv.write("{},{}\n".format(r, p))
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(executor, process_channel,
+                                 loop, decoded, channel)
 
     finally:
         print("{}:{} disconnected".format(ip, port))
@@ -108,9 +103,6 @@ async def listener(reader, writer):
         # to connect.
         with (await channels_mutex):
             channels[channel_id] = None
-
-        if channel_id == 0:
-            csv.close()
 
 
 def main():
