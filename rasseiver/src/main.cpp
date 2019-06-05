@@ -11,29 +11,28 @@
 #include "filter.hpp"
 
 /**
- * Run the program with an Airspy device.  Stops when a signal in the sigset is
- * received.
+ * Run the program with the specifiec device.  Stops when a signal in
+ * the sigset is received.
  *
  * TODO: sigset should be part of another function, perhaps.
  *
+ * @param device The device to use
  * @param config The configuration of the device.
- * @param set List of signals to wait for.
  * @param filter The filter to be used on the input signal.
+ * @param set List of signals to wait for.
  */
-static void run_airspy(ConfigMap const &config, sigset_t const &set,
-		       Filter const &filter) {
-	Airspy airspy {config.at("frequency"),
-			config.at("sample_rate"),
-			AIRSPY_SAMPLE_INT16_IQ};
-	Process<int16_t> process {airspy.buffer_size(), filter,
-			config.at("decimation"), airspy.max_value(),
+template<typename T>
+static void run_device(T &device, ConfigMap const &config,
+		       Filter const &filter, sigset_t const &set) {
+	Process<int16_t> process {device.buffer_size(), filter,
+			config.at("decimation"), device.max_value(),
 			config.at("host").get_value(), config.at("port")};
 	int sig;
 
 	std::cout << "hello, world" << std::endl;
 
-	// Start receiving data from the Airspy
-	Receiver<Airspy, int16_t> receiver {airspy, process};
+	// Start receiving data from the device
+	Receiver<T, int16_t> receiver {device, process};
 
 	do {
 		alarm(1);
@@ -41,18 +40,18 @@ static void run_airspy(ConfigMap const &config, sigset_t const &set,
 		// Wait until we receive a signal
 		sigwait(&set, &sig);
 
-		// Check every second that the Airspy is still streaming
-	} while (sig == SIGALRM && airspy.is_streaming());
+		// Check every second that the device is still streaming
+	} while (sig == SIGALRM && device.is_streaming());
 
 	if (sig == SIGALRM) {
-		// If the signal received is an alarm and we are outside of the
-		// loop, it means the Airspy stopped streaming.  In this case,
-		// throw an exception.
-		throw std::runtime_error {"Airspy stopped streaming"};
+		// If the signal received is an alarm and we are
+		// outside of the loop, it means the device stopped
+		// streaming.  In this case, throw an exception.
+		throw std::runtime_error {"Device stopped streaming"};
 	}
 
-	// Stop receiving data from the Airspy, clear the process and close the
-	// Airspy.  This is automatically handled by the compiler thanks to
+	// Stop receiving data from the device and close the process.
+	// This is automatically handled by the compiler thanks to
 	// RAII.
 }
 
@@ -109,7 +108,10 @@ int main(int argc, char **argv) {
 	// Check the device type, and call the appropriate function
 	if (config["device"] == "airspy") {
 		try {
-			run_airspy(config, set, filter);
+			Airspy airspy {config.at("frequency"),
+				       config.at("sample_rate"),
+				       AIRSPY_SAMPLE_INT16_IQ};
+			run_device(airspy, config, filter, set);
 		} catch (std::runtime_error &e) {
 			std::cerr << e.what() << std::endl;
 			return EXIT_FAILURE;
