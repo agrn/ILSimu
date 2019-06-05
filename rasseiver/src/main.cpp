@@ -8,6 +8,7 @@
 #include "circular_buffer.hpp"
 #include "config.hpp"
 #include "device_airspy.hpp"
+#include "device_dummy.hpp"
 #include "filter.hpp"
 
 /**
@@ -105,22 +106,25 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	// Check the device type, and call the appropriate function
-	if (config["device"] == "airspy") {
-		try {
+	try {
+		// Check the device type, and call the appropriate function
+		if (config["device"] == "airspy") {
 			Airspy airspy {config.at("frequency"),
-				       config.at("sample_rate"),
-				       AIRSPY_SAMPLE_INT16_IQ};
+					config.at("sample_rate"),
+					AIRSPY_SAMPLE_INT16_IQ};
 			run_device(airspy, config, filter, set);
-		} catch (std::runtime_error &e) {
-			std::cerr << e.what() << std::endl;
+		} else if (config["device"] == "dummy") {
+			DummyDevice dummy {config.at("count")};
+			run_device(dummy, config, filter, set);
+		} else {
+			// Unknown device
+			std::cerr << "Unknown device type \""
+				  << config["device"].get_value()
+				  << "\"" << std::endl;
 			return EXIT_FAILURE;
 		}
-	} else {
-		// Unknown device
-		std::cerr << "Unknown device type \""
-			  << config["device"].get_value()
-			  << "\"" << std::endl;
+	} catch (std::runtime_error &e) {
+		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
 
