@@ -48,13 +48,27 @@ bool filter_buffer(CircularBuffer<T> const &buffer, Filter const &filter,
 		   int threshold) {
 	size_t &i {begin};
 	bool saturation {false};
+	std::vector<T> const &previous {buffer.get_previous()},
+		&current {buffer.get_current()};
 
 	for (; i < buffer.size(); i += step * 2) {
 		double valueI {}, valueQ {};
+		int j {(int) filter.size() - 1}, k {(int) (i - (j * 2))};
 
-		for (size_t j {0}; j < filter.size(); ++j) {
-			valueI += buffer[i - (j * 2)] * filter[j];
-			valueQ += buffer[i + 1 - (j * 2)] * filter[j];
+		if (k < 0) {
+			k += previous.size();
+
+			while (j >= 0 && k < (int) previous.size()) {
+				valueI += previous[k++] * filter[j];
+				valueQ += previous[k++] * filter[j--];
+			}
+
+			k = 0;
+		}
+
+		while (j >= 0) {
+			valueI += current[k++] * filter[j];
+			valueQ += current[k++] * filter[j--];
 		}
 
 		output.push_back(std::round(valueI));
