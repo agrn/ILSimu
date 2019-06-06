@@ -63,6 +63,20 @@ public:
 	}
 
 	/**
+	 * Returns a reference to the previous buffer.
+	 */
+	std::vector<T> const &get_previous() const {
+		return previous;
+	}
+
+	/**
+	 * Returns a reference to the current buffer.
+	 */
+	std::vector<T> const &get_current() const {
+		return current;
+	}
+
+	/**
 	 * Switch the current buffer, and empties the current buffer.
 	 */
 	void switch_buffer() {
