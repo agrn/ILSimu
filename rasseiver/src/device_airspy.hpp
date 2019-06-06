@@ -63,6 +63,9 @@ public:
 	int max_value() override;
 
 private:
+	void init_airspy(unsigned int frequency, unsigned int sample_rate,
+			 airspy_sample_type sample_type);
+
 	airspy_device *device {nullptr};
 };
 
