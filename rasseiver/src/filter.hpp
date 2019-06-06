@@ -33,7 +33,7 @@ void filter_read_file(std::string const &file, Filter &filter);
  * @param filter The values of the FIR.
  * @param output The output.
  * @param begin The index of the first element to filter.  It is used by the
- *   loop as an index and is incremented in `step * 2' incrementns.  When the
+ *   loop as an index and is incremented in `step * 2' increments.  When the
  *   function returns, its value will be between `buffer.size()' and
  *   `buffer.size() + step * 2'.
  * @param step The decimation factor.  Only one value out of `step` is
