@@ -20,6 +20,7 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
+find_package(CPPUNIT)
 find_package(LIBAIRSPY REQUIRED)
 find_package(Threads REQUIRED)
 include_directories(${LIBAIRSPY_INCLUDE_DIR})
