@@ -6,7 +6,7 @@ Airspy::Airspy(unsigned int frequency, unsigned int sample_rate,
 	       airspy_sample_type sample_type) {
 	airspy_error result;
 
-	result = (airspy_error) airspy_open(&this->device);
+	result = (airspy_error) airspy_open(&device);
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_open() failed: "
 			  << airspy_error_name(result) << std::endl;
@@ -20,7 +20,7 @@ Airspy::Airspy(uint32_t serial_num, unsigned int frequency,
 	       unsigned int sample_rate, airspy_sample_type sample_type) {
 	airspy_error result;
 
-	result = (airspy_error) airspy_open_sn(&this->device, serial_num);
+	result = (airspy_error) airspy_open_sn(&device, serial_num);
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_open_sn() failed: "
 			  << airspy_error_name(result) << std::endl;
@@ -58,7 +58,7 @@ bool Airspy::is_streaming() {
 void Airspy::set_frequency(unsigned int frequency) {
 	airspy_error result;
 
-	result = (airspy_error) airspy_set_freq(this->device, frequency);
+	result = (airspy_error) airspy_set_freq(device, frequency);
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_freq failed: "
 			  << airspy_error_name(result) << std::endl;
@@ -69,8 +69,7 @@ void Airspy::set_frequency(unsigned int frequency) {
 void Airspy::set_sample_rate(unsigned int sample_rate) {
 	airspy_error result;
 
-	result = (airspy_error) airspy_set_samplerate(this->device,
-						      sample_rate);
+	result = (airspy_error) airspy_set_samplerate(device, sample_rate);
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_samplerate failed: "
 			  << airspy_error_name(result) << std::endl;
@@ -81,8 +80,7 @@ void Airspy::set_sample_rate(unsigned int sample_rate) {
 void Airspy::set_sample_type(airspy_sample_type sample_type) {
 	airspy_error result;
 
-	result = (airspy_error) airspy_set_sample_type(this->device,
-						       sample_type);
+	result = (airspy_error) airspy_set_sample_type(device, sample_type);
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "airspy_set_sample_type() failed: "
 			  << airspy_error_name(result) << std::endl;
@@ -91,7 +89,7 @@ void Airspy::set_sample_type(airspy_sample_type sample_type) {
 }
 
 Airspy::~Airspy() {
-	if (this->device != nullptr) {
+	if (device != nullptr) {
 		airspy_close(device);
 		std::cout << "Closing airspy" << std::endl;
 	}

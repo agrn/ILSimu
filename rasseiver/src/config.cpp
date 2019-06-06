@@ -8,7 +8,7 @@ ConfigValue::ConfigValue(std::string value): value {std::move(value)} {
 }
 
 std::string ConfigValue::get_value() const {
-	return this->value;
+	return value;
 }
 
 ConfigValue::operator double() const {
@@ -24,11 +24,11 @@ ConfigValue::operator unsigned int() const {
 }
 
 bool ConfigValue::operator==(const std::string &s) const {
-	return this->value == s;
+	return value == s;
 }
 
 bool ConfigValue::operator==(const ConfigValue &o) const {
-	return this->value == o.value;
+	return value == o.value;
 }
 
 /*
