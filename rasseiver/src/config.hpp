@@ -44,8 +44,8 @@ using ConfigMap = std::map<std::string, ConfigValue>;
  */
 const ConfigMap config_default {
 	{"device", ConfigValue {"airspy"}},
-	{"frequency", ConfigValue {"111100000"}},
-	{"sample_rate", ConfigValue {"2500000"}},
+	{"frequency", ConfigValue {"111100000"}}, // 111.1 MHz
+	{"sample_rate", ConfigValue {"2500000"}}, // 2.5 MSPS
 	{"sample_type", ConfigValue {"int"}},
 	{"decimation", ConfigValue {"60"}},
 	{"host", ConfigValue {"127.0.0.1"}},
