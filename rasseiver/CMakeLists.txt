@@ -12,3 +12,8 @@ add_executable(${PACKAGE} src/main.cpp src/config.cpp src/device_airspy.cpp
   src/filter.cpp src/sender.cpp)
 target_link_libraries(${PACKAGE} PUBLIC ${LIBAIRSPY_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT})
+
+if (CPPUNIT_FOUND)
+  add_executable(${PACKAGE}_test tests/tests.cpp tests/test_circular_buffer.cpp)
+  target_link_libraries(${PACKAGE}_test PUBLIC ${CPPUNIT_LIBRARIES})
+endif ()
