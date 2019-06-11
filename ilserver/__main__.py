@@ -11,7 +11,7 @@ import struct
 import numpy as np
 
 from libils.complex_helpers import compensate_cpx
-from libils.constants import CLIENT_PORT, MAX_RECV, PACKET_SIZE
+from libils.constants import MAX_RECV, PACKET_SIZE, RECEIVER_PORT
 
 from .channel import Channel, ReferenceChannel
 from .constants import BASE_CHANNEL
@@ -182,7 +182,7 @@ def main():
     servers = []
 
     coro = asyncio.start_server(controller_listener, "0.0.0.0",
-                                CLIENT_PORT, loop=loop)
+                                RECEIVER_PORT, loop=loop)
     servers.append(loop.run_until_complete(coro))
 
     for i in range(CHANNEL_AMOUNT):
