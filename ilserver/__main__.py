@@ -8,13 +8,13 @@ import array
 import asyncio
 import struct
 
-import cmath
-
 import numpy as np
 
-from channel import Channel, ReferenceChannel
-from complex_helpers import compensate_cpx
-from constants import BASE_CHANNEL, PACKET_SIZE
+from libils.complex_helpers import compensate_cpx
+from libils.constants import CLIENT_PORT, MAX_RECV, PACKET_SIZE
+
+from .channel import Channel, ReferenceChannel
+from .constants import BASE_CHANNEL
 
 # Amount of servers to open.  The first server will have the port
 # BASE_CHANNEL, the second BASE_CHANNEL + 1, etc.
@@ -34,16 +34,18 @@ old_phase_shift = [0] * CHANNEL_AMOUNT
 
 async def send_back_data(writer, packet, shift):
     global old_phase_shift
-    assert len(packet) == PACKET_SIZE
+
+    packet_to_send_size = PACKET_SIZE * (len(phase_shift) // CHANNEL_AMOUNT)
+    assert len(packet) == packet_to_send_size
 
     if writer is None:
         return
 
     try:
         to_send = chain.from_iterable((c.real, c.imag) for c in packet)
-        data = struct.pack("<?{}d".format(PACKET_SIZE * 2),
-                           old_phase_shift != shift,
-                           *to_send)
+        data = struct.pack("<I?{}d".format(2 * packet_to_send_size),
+                           len(packet) * 2, old_phase_shift != shift, *to_send)
+
         writer.write(data)
         await writer.drain()
         old_phase_shift = shift
@@ -63,18 +65,25 @@ def process_channel(loop, decoded, channel):
 
         nb_it = parcours_max // PACKET_SIZE
         for _ in range(nb_it):
-            shift = phase_shift.copy()
+            shift = phase_shift[:]
+            to_send = []
 
-            res = np.array([0j] * PACKET_SIZE)
-            for i, ch in enumerate(channels):
-                c = compensate_cpx(ch.buffer[:PACKET_SIZE], ch.level,
-                                   ch.phase_delta + shift[i])
+            for i in range(len(shift) // CHANNEL_AMOUNT):
+                res = np.array([0j] * PACKET_SIZE)
+                for j, ch in enumerate(channels):
+                    c = compensate_cpx(ch.buffer[:PACKET_SIZE], ch.level,
+                                       ch.phase_delta + \
+                                       shift[i * CHANNEL_AMOUNT + j])
 
-                res += c
+                    res += c
+                to_send = np.concatenate((to_send, res))
+
+            for ch in channels:
                 del ch.buffer[:PACKET_SIZE]
 
             asyncio.run_coroutine_threadsafe(send_back_data(controller_writer,
-                                                            res, shift), loop)
+                                                            to_send, shift),
+                                             loop)
 
 
 async def channel_listener(reader, writer):
@@ -110,9 +119,11 @@ async def channel_listener(reader, writer):
             decoded_header = struct.unpack_from("<Q?", header)
 
             # Read the specified amount of bytes
-            data = await reader.read(decoded_header[0])
-            if not data:
-                break
+            l = decoded_header[0]
+            data = b""
+            while l > 0:
+                data += await reader.read(min(l, MAX_RECV))
+                l = decoded_header[0] - len(data)
 
             # If the data is saturating, print a warning
             if decoded_header[1]:
@@ -146,7 +157,13 @@ async def controller_listener(reader, writer):
 
     try:
         while True:
-            raw_phase_shift = await reader.read(8 * CHANNEL_AMOUNT)
+            header = await reader.read(4)
+            if not header:
+                break
+
+            decoded_header = struct.unpack_from("<I", header)
+            raw_phase_shift = await reader.read(8 * CHANNEL_AMOUNT * \
+                                                decoded_header[0])
             if not raw_phase_shift:
                 break
 
@@ -156,6 +173,7 @@ async def controller_listener(reader, writer):
         print("Controller disconnected")
         writer.close()
         controller_writer = None
+        phase_shift = [0] * CHANNEL_AMOUNT
 
 
 def main():
@@ -163,12 +181,12 @@ def main():
     loop = asyncio.get_event_loop()
     servers = []
 
-    coro = asyncio.start_server(controller_listener, "127.0.0.1",
-                                BASE_CHANNEL - 1, loop=loop)
+    coro = asyncio.start_server(controller_listener, "0.0.0.0",
+                                CLIENT_PORT, loop=loop)
     servers.append(loop.run_until_complete(coro))
 
     for i in range(CHANNEL_AMOUNT):
-        coro = asyncio.start_server(channel_listener, "127.0.0.1",
+        coro = asyncio.start_server(channel_listener, "0.0.0.0",
                                     BASE_CHANNEL + i, loop=loop)
         servers.append(loop.run_until_complete(coro))
 
