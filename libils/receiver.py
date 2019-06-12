@@ -2,8 +2,9 @@ import array
 import socket
 import struct
 
-from .constants import MAX_RECV, PACKET_SIZE, RECEIVER_PORT
+from .constants import PACKET_SIZE, RECEIVER_PORT
 from .complex_helpers import flat_list_to_complex
+from .helpers import recv_data
 
 
 class SynchronousReceiver:
@@ -23,17 +24,23 @@ class SynchronousReceiver:
             struct.pack("<I{}d".format(len(phases)),
                         len(phases) // self.channel_count, *phases))
 
-    def receive(self):
-        status = (0, False,)
-
-        while not status[1]:
-            status = struct.unpack("<I?", self.sock.recv(5))
-            l = status[0] * 8
-            raw_data = b""
-
-            while l > 0:
-                raw_data += self.sock.recv(min(l, MAX_RECV))
-                l = (status[0] * 8) - len(raw_data)
-
+    def __decode_packet(self, raw_data):
         data = array.array("d", raw_data)
         return flat_list_to_complex(data)
+
+    def __receive_packet(self):
+        status = struct.unpack("<I?", self.sock.recv(5))
+        raw_data = recv_data(self.sock, status[0] * 8)
+
+        return status[1], raw_data
+
+    def wait_and_receive(self):
+        updated = False
+        while not updated:
+            updated, raw_data = self.__receive_packet()
+
+        return self.__decode_packet(raw_data)
+
+    def receive(self):
+        _, raw_data = self.__receive_packet()
+        return self.__decode_packet(raw_data)

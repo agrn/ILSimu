@@ -11,7 +11,8 @@ import struct
 import numpy as np
 
 from libils.complex_helpers import compensate_cpx
-from libils.constants import MAX_RECV, PACKET_SIZE, RECEIVER_PORT
+from libils.constants import PACKET_SIZE, RECEIVER_PORT
+from libils.helpers import async_recv_data
 
 from .channel import Channel, ReferenceChannel
 from .constants import BASE_CHANNEL
@@ -119,11 +120,7 @@ async def channel_listener(reader, writer):
             decoded_header = struct.unpack_from("<Q?", header)
 
             # Read the specified amount of bytes
-            l = decoded_header[0]
-            data = b""
-            while l > 0:
-                data += await reader.read(min(l, MAX_RECV))
-                l = decoded_header[0] - len(data)
+            data = await async_recv_data(reader, decoded_header[0])
 
             # If the data is saturating, print a warning
             if decoded_header[1]:
@@ -162,10 +159,9 @@ async def controller_listener(reader, writer):
                 break
 
             decoded_header = struct.unpack_from("<I", header)
-            raw_phase_shift = await reader.read(8 * CHANNEL_AMOUNT * \
-                                                decoded_header[0])
-            if not raw_phase_shift:
-                break
+            raw_phase_shift = await async_recv_data(reader,
+                                                    8 * CHANNEL_AMOUNT * \
+                                                    decoded_header[0])
 
             phase_shift = array.array("d", raw_phase_shift)
 
