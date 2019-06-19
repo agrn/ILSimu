@@ -55,6 +55,7 @@ public:
 	void set_frequency(unsigned int frequency);
 	void set_sample_rate(unsigned int sample_rate);
 	void set_sample_type(airspy_sample_type sample_type);
+	void set_gain(int gain) override;
 
 	void receive(Process<int16_t> &process) override;
 	void stop() override;

@@ -2,53 +2,39 @@
 
 #include <iostream>
 
+#define AIRSPY_OPERATION(FN, ...)					\
+	do {								\
+		airspy_error result;					\
+									\
+		result = (airspy_error) FN(__VA_ARGS__);		\
+		if (result != AIRSPY_SUCCESS) {				\
+			std::cerr << #FN "() failed: "			\
+				  << airspy_error_name(result)		\
+				  << std::endl;				\
+			throw std::runtime_error {airspy_error_name(result)}; \
+		}							\
+	} while (0)
+
 Airspy::Airspy(unsigned int frequency, unsigned int sample_rate,
 	       airspy_sample_type sample_type) {
-	airspy_error result;
-
-	result = (airspy_error) airspy_open(&device);
-	if (result != AIRSPY_SUCCESS) {
-		std::cerr << "airspy_open() failed: "
-			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error {airspy_error_name(result)};
-	}
+	AIRSPY_OPERATION(airspy_open, &device);
 
 	init_airspy(frequency, sample_rate, sample_type);
 }
 
 Airspy::Airspy(uint32_t serial_num, unsigned int frequency,
 	       unsigned int sample_rate, airspy_sample_type sample_type) {
-	airspy_error result;
-
-	result = (airspy_error) airspy_open_sn(&device, serial_num);
-	if (result != AIRSPY_SUCCESS) {
-		std::cerr << "airspy_open_sn() failed: "
-			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error {airspy_error_name(result)};
-	}
+	AIRSPY_OPERATION(airspy_open_sn, &device, serial_num);
 
 	init_airspy(frequency, sample_rate, sample_type);
 }
 
 void Airspy::init_airspy(unsigned int frequency, unsigned int sample_rate,
 			 airspy_sample_type sample_type) {
-	airspy_error result;
-
 	set_frequency(frequency);
 	set_sample_rate(sample_rate);
 	set_sample_type(sample_type);
-
-	result = (airspy_error) airspy_set_vga_gain(device, 5);
-	if (result == AIRSPY_SUCCESS)
-		result = (airspy_error) airspy_set_mixer_gain(device, 5);
-	if (result == AIRSPY_SUCCESS)
-		result = (airspy_error) airspy_set_lna_gain(device, 1);
-
-	if (result != AIRSPY_SUCCESS) {
-		std::cerr << "Failed to set Airspy gain: "
-			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error {airspy_error_name(result)};
-	}
+	set_gain(1);
 }
 
 bool Airspy::is_streaming() {
@@ -56,36 +42,19 @@ bool Airspy::is_streaming() {
 }
 
 void Airspy::set_frequency(unsigned int frequency) {
-	airspy_error result;
-
-	result = (airspy_error) airspy_set_freq(device, frequency);
-	if (result != AIRSPY_SUCCESS) {
-		std::cerr << "airspy_set_freq failed: "
-			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error {airspy_error_name(result)};
-	}
+	AIRSPY_OPERATION(airspy_set_freq, device, frequency);
 }
 
 void Airspy::set_sample_rate(unsigned int sample_rate) {
-	airspy_error result;
-
-	result = (airspy_error) airspy_set_samplerate(device, sample_rate);
-	if (result != AIRSPY_SUCCESS) {
-		std::cerr << "airspy_set_samplerate failed: "
-			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error {airspy_error_name(result)};
-	}
+	AIRSPY_OPERATION(airspy_set_samplerate, device, sample_rate);
 }
 
 void Airspy::set_sample_type(airspy_sample_type sample_type) {
-	airspy_error result;
+	AIRSPY_OPERATION(airspy_set_sample_type, device, sample_type);
+}
 
-	result = (airspy_error) airspy_set_sample_type(device, sample_type);
-	if (result != AIRSPY_SUCCESS) {
-		std::cerr << "airspy_set_sample_type() failed: "
-			  << airspy_error_name(result) << std::endl;
-		throw std::runtime_error {airspy_error_name(result)};
-	}
+void Airspy::set_gain(int gain) {
+	AIRSPY_OPERATION(airspy_set_linearity_gain, device, gain);
 }
 
 Airspy::~Airspy() {

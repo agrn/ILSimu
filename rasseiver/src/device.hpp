@@ -28,6 +28,11 @@ public:
 	virtual void receive(Process<T> &process) = 0;
 
 	/**
+	 * Set gain
+	 */
+	virtual void set_gain(int gain) = 0;
+
+	/**
 	 * Stop receiving data from the device.
 	 */
 	virtual void stop() = 0;
