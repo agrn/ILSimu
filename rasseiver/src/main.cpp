@@ -106,27 +106,40 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	try {
-		// Check the device type, and call the appropriate function
-		if (config["device"] == "airspy") {
-			Airspy airspy {config.at("frequency"),
-					config.at("sample_rate"),
-					AIRSPY_SAMPLE_INT16_IQ};
-			run_device(airspy, config, filter, set);
-		} else if (config["device"] == "dummy") {
-			DummyDevice dummy {config.at("count")};
-			run_device(dummy, config, filter, set);
-		} else {
-			// Unknown device
-			std::cerr << "Unknown device type \""
-				  << config["device"].get_value()
-				  << "\"" << std::endl;
-			return EXIT_FAILURE;
-		}
-	} catch (std::runtime_error &e) {
-		std::cerr << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+    try {
+        // Check the device type, and call the appropriate function
+        if (config["device"] == "airspy") {
+            // Determine which airspy to use
+            if(config.count("serial_number") > 0) {
+                Airspy airspy {
+                    config.at("serial_number"),
+                    config.at("frequency"),
+                    config.at("sample_rate"),
+                    AIRSPY_SAMPLE_INT16_IQ};
+                run_device(airspy, config, filter, set);
+            } else {
+                Airspy airspy {
+                    config.at("frequency"),
+                    config.at("sample_rate"),
+                    AIRSPY_SAMPLE_INT16_IQ};
+                run_device(airspy, config, filter, set);
+            }
 
-	return EXIT_SUCCESS;
+        } else if (config["device"] == "dummy") {
+            DummyDevice dummy {config.at("count")};
+            run_device(dummy, config, filter, set);
+        } else {
+            // Unknown device
+            std::cerr << "Unknown device type \""
+                  << config["device"].get_value()
+                  << "\"" << std::endl;
+            return EXIT_FAILURE;
+        }
+    } catch (std::runtime_error &e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
+
