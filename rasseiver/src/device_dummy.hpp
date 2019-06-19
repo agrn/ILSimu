@@ -28,6 +28,10 @@ public:
 	 */
 	~DummyDevice() override;
 
+	void set_gain(int gain) override {
+		(void) gain;
+	};
+
 	void receive(Process<int16_t> &process) override;
 	void stop() override;
 

@@ -34,10 +34,7 @@ void Airspy::init_airspy(unsigned int frequency, unsigned int sample_rate,
 	set_frequency(frequency);
 	set_sample_rate(sample_rate);
 	set_sample_type(sample_type);
-
-	AIRSPY_OPERATION(airspy_set_vga_gain, device, 5);
-	AIRSPY_OPERATION(airspy_set_mixer_gain, device, 5);
-	AIRSPY_OPERATION(airspy_set_lna_gain, device, 5);
+	set_gain(1);
 }
 
 bool Airspy::is_streaming() {
@@ -54,6 +51,10 @@ void Airspy::set_sample_rate(unsigned int sample_rate) {
 
 void Airspy::set_sample_type(airspy_sample_type sample_type) {
 	AIRSPY_OPERATION(airspy_set_sample_type, device, sample_type);
+}
+
+void Airspy::set_gain(int gain) {
+	AIRSPY_OPERATION(airspy_set_linearity_gain, device, gain);
 }
 
 Airspy::~Airspy() {
