@@ -8,6 +8,16 @@ endif ()
 set(CMAKE_C_FLAGS "-Wall -Wextra -Wmissing-declarations -Werror -pedantic")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14")
 
+if (PROFILE_GENERATE)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate")
+endif ()
+
+if (PROFILE_USE)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
+endif ()
+
 set(CMAKE_C_FLAGS_DEBUG "-Og -ggdb3")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -s -flto -march=native")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -ggdb3 -flto -march=native")
