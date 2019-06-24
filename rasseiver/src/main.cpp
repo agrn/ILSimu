@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include "circular_buffer.hpp"
 #include "config.hpp"
 #include "device_airspy.hpp"
 #include "filter.hpp"
