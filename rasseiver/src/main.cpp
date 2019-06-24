@@ -30,7 +30,7 @@ static void run_device(T &device, ConfigMap const &config,
 			config.at("host").get_value(), config.at("port")};
 	int sig;
 
-	std::cout << "hello, world" << std::endl;
+	std::cout << "hello, world !!" << std::endl;
 
 	// Start receiving data from the device
 	Receiver<T, int16_t> receiver {device, process};
