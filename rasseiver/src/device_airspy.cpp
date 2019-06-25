@@ -4,9 +4,7 @@
 
 #define AIRSPY_OPERATION(FN, ...)					\
 	do {								\
-		airspy_error result;					\
-									\
-		result = (airspy_error) FN(__VA_ARGS__);		\
+		auto result {static_cast<airspy_error> (FN(__VA_ARGS__))}; \
 		if (result != AIRSPY_SUCCESS) {				\
 			std::cerr << #FN "() failed: "			\
 				  << airspy_error_name(result)		\
@@ -88,10 +86,12 @@ Airspy::~Airspy() {
 static int airspy_callback(airspy_transfer_t *transfer) {
 	// Dump register and check if the airspy is still synced.
 	uint8_t value;
-	int result {airspy_si5351c_read(transfer->device, 0, &value)};
+	auto result {static_cast<airspy_error> (
+			airspy_si5351c_read(transfer->device, 0, &value))};
+
 	if (result != AIRSPY_SUCCESS) {
 		std::cerr << "Error: could not dump register." << std::endl;
-		std::cerr << airspy_error_name((airspy_error) result)
+		std::cerr << airspy_error_name(result)
 			  << std::endl;
 	} else if (value & 0x10) {
 		std::cerr << "Warning: Airspy out of sync." << std::endl;
@@ -104,7 +104,7 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 	// Processing input buffer
 	// Get back the process and the samples.
 	auto *process {static_cast<Process<int16_t> *> (transfer->ctx)};
-	int16_t *samples {(int16_t *) transfer->samples};
+	auto *samples {static_cast<int16_t *> (transfer->samples)};
 
 	process->apply(samples, transfer->sample_count * 2);
 
