@@ -28,8 +28,8 @@ public:
 	operator int() const;
 	operator unsigned int() const;
 
-	bool operator==(const std::string &s) const;
-	bool operator==(const ConfigValue &o) const;
+	bool operator==(std::string const &s) const;
+	bool operator==(ConfigValue const &o) const;
 
 private:
 	std::string value {""};

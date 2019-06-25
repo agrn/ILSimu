@@ -23,11 +23,11 @@ ConfigValue::operator unsigned int() const {
 	return static_cast<unsigned int> (std::stoi(value));
 }
 
-bool ConfigValue::operator==(const std::string &s) const {
+bool ConfigValue::operator==(std::string const &s) const {
 	return value == s;
 }
 
-bool ConfigValue::operator==(const ConfigValue &o) const {
+bool ConfigValue::operator==(ConfigValue const &o) const {
 	return value == o.value;
 }
 
