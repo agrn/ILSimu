@@ -109,7 +109,7 @@ static void parse_line(std::string const &line, ConfigMap &config) {
 	}
 }
 
-void config_read_file(std::string file, ConfigMap &config) {
+void config_read_file(std::string const &file, ConfigMap &config) {
 	std::ifstream configFile {file};
 	std::string line;
 

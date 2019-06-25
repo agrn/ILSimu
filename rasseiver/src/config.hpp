@@ -59,6 +59,6 @@ const ConfigMap config_default {
  * @param file The file to read the configuration from.
  * @param config The map to which parsed parameters are added.
  */
-void config_read_file(std::string file, ConfigMap &config);
+void config_read_file(std::string const &file, ConfigMap &config);
 
 #endif  /* __ILSIMU_RASSEIVER_CONFIG_HPP */
