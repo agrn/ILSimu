@@ -112,14 +112,8 @@ static int airspy_callback(airspy_transfer_t *transfer) {
 }
 
 void Airspy::receive(Process<int16_t> &process) {
-	auto result {airspy_start_rx(device, airspy_callback,
-				     (void *) &process)};
-
-	if (result != AIRSPY_SUCCESS) {
-		throw std::runtime_error {
-			std::string {"airspy_start_rx() failed: "} +
-			airspy_error_name((airspy_error) result)};
-	}
+	AIRSPY_OPERATION(airspy_start_rx, device, airspy_callback,
+			 static_cast<void *> (&process));
 }
 
 void Airspy::stop() {
