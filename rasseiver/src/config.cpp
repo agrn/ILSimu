@@ -20,7 +20,7 @@ ConfigValue::operator int() const {
 }
 
 ConfigValue::operator unsigned int() const {
-	return (unsigned int) std::stoi(value);
+	return static_cast<unsigned int> (std::stoi(value));
 }
 
 bool ConfigValue::operator==(const std::string &s) const {
