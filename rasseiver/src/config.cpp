@@ -20,14 +20,14 @@ ConfigValue::operator int() const {
 }
 
 ConfigValue::operator unsigned int() const {
-	return (unsigned int) std::stoi(value);
+	return static_cast<unsigned int> (std::stoi(value));
 }
 
-bool ConfigValue::operator==(const std::string &s) const {
+bool ConfigValue::operator==(std::string const &s) const {
 	return value == s;
 }
 
-bool ConfigValue::operator==(const ConfigValue &o) const {
+bool ConfigValue::operator==(ConfigValue const &o) const {
 	return value == o.value;
 }
 
@@ -109,7 +109,7 @@ static void parse_line(std::string const &line, ConfigMap &config) {
 	}
 }
 
-void config_read_file(std::string file, ConfigMap &config) {
+void config_read_file(std::string const &file, ConfigMap &config) {
 	std::ifstream configFile {file};
 	std::string line;
 

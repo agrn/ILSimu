@@ -43,26 +43,6 @@ public:
 	CircularBuffer &operator=(CircularBuffer const &) = delete;
 
 	/**
-	 * Returns the value at the specified index.
-	 *
-	 * If the index is higher or equal to 0, the value will be taken
-	 * from the current buffer.  Otherwise, it will be taken from the
-	 * previous buffer, from its end (ie. index -1 will be the last
-	 * element of the previous buffer).
-	 *
-	 * @param index Index of the element to return.
-	 * @returns A constant reference to the element.
-	 */
-	const T &operator[](int index) const {
-		if (index < 0) {
-			// index is negative, so it must be added, not substracted.
-			return previous[previous.size() + index];
-		} else {
-			return current[index];
-		}
-	}
-
-	/**
 	 * Returns a reference to the previous buffer.
 	 */
 	std::vector<T> const &get_previous() const {
@@ -74,13 +54,6 @@ public:
 	 */
 	std::vector<T> const &get_current() const {
 		return current;
-	}
-
-	/**
-	 * Switch the current buffer, and empties the current buffer.
-	 */
-	void switch_buffer() {
-		switch_buffer(nullptr, 0);
 	}
 
 	/**
@@ -103,43 +76,6 @@ public:
 		current.reserve(count);
 
 		std::copy_n(new_values, count, std::back_inserter(current));
-	}
-
-	/**
-	 * Insert a value at the end of the current buffer.
-	 *
-	 * @param new_value The value to insert in the current buffer.
-	 */
-	void push_back(T new_value) {
-		current.push_back(new_value);
-	}
-
-	/**
-	 * Copy a part of the buffer to dst.  The range filled is [ifrom,
-	 * ito).  If some parts that should be copied are out of bound, they
-	 * will be filled with empty elements.
-	 *
-	 * @param ifrom The element to copy from.  It is included in the
-	 * copy.
-	 * @param ito The element to copy to.  It is not included in the
-	 * copy.
-	 * @param dst The destination buffer.
-	 */
-	void copy_buffer(int ifrom, int ito, std::vector<T> &dst) const {
-		const T default_ {};
-
-		dst.clear();
-		dst.reserve(ito - ifrom); // Allocate the whole destination at once
-
-		for (int i = ifrom; i < ito; ++i) {
-			if ((i < 0 && -i >= previous.size()) ||
-			    (i >= 0 && i >= current.size())) {
-				dst.push_back(default_);
-			} else {
-				// might be optimised with std::copy()?
-				dst.push_back(this[i]);
-			}
-		}
 	}
 
 	/**

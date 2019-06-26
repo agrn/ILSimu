@@ -17,8 +17,7 @@ public:
 	Device(Device const &) = delete;
 	Device &operator=(Device const &) = delete;
 
-	virtual ~Device() {
-	}
+	virtual ~Device() = default;
 
 	/**
 	 * Receive data from the device.

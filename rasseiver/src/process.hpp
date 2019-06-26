@@ -85,11 +85,11 @@ public:
 private:
 	CircularBuffer<T> buf;
 	std::vector<T> output;
-	Filter filter;
+	const Filter filter;
 
 	size_t pos;
-	int step;
-	int threshold;
+	const int step;
+	const int threshold;
 
 	Sender sender;
 };
