@@ -1,4 +1,4 @@
-#include <stdexcept>
+#include <iostream>
 
 #include <cerrno>
 #include <unistd.h>
@@ -39,11 +39,7 @@ void Fd::close() {
 
 Sender::Sender(std::string const &address, uint16_t port):
 	address {address}, port {port} {
-	if (reconnect() != 0) {
-		throw std::runtime_error {
-			"Failed to connect to " + address + ":" + std::to_string(port) + ": " +
-			std::strerror(errno)};
-	}
+	reconnect();
 }
 
 Sender::~Sender() {
@@ -70,6 +66,8 @@ int Sender::reconnect() {
 	}
 
 	fd = std::move(newFd);
+
+	std::cout << "Connected to " << address << ":" << port << std::endl;
 
 	return 0;
 }
