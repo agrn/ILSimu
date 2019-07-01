@@ -10,8 +10,19 @@
 #include "device_dummy.hpp"
 #include "filter.hpp"
 
+static int wait(unsigned int seconds, sigset_t const &set) {
+	int sig;
+
+	alarm(seconds);
+
+	// Wait until we receive a signal
+	sigwait(&set, &sig);
+
+	return sig;
+}
+
 /**
- * Run the program with the specifiec device.  Stops when a signal in
+ * Run the program with the specified device.  Stops when a signal in
  * the sigset is received.
  *
  * TODO: sigset should be part of another function, perhaps.
@@ -35,11 +46,7 @@ static void run_device(T &device, ConfigMap const &config,
 	Receiver<T, int16_t> receiver {device, process};
 
 	do {
-		alarm(1);
-
-		// Wait until we receive a signal
-		sigwait(&set, &sig);
-
+		sig = wait(1, set);
 		// Check every second that the device is still streaming
 	} while (sig == SIGALRM && device.is_streaming());
 
@@ -105,37 +112,49 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	try {
-		// Check the device type, and call the appropriate function
-		if (config["device"] == "airspy") {
-			// Determine which airspy to use
-			if(config.count("serial_number") > 0) {
-				Airspy airspy {config.at("serial_number"),
-						config.at("frequency"),
-						config.at("sample_rate"),
-						AIRSPY_SAMPLE_INT16_IQ};
-				run_device(airspy, config, filter, set);
-			} else {
-				Airspy airspy {config.at("frequency"),
-						config.at("sample_rate"),
-						AIRSPY_SAMPLE_INT16_IQ};
-				run_device(airspy, config, filter, set);
-			}
+	bool retry {false};
+	int sig {};
 
-		} else if (config["device"] == "dummy") {
-			DummyDevice dummy {config.at("count")};
-			run_device(dummy, config, filter, set);
-		} else {
-			// Unknown device
-			std::cerr << "Unknown device type \""
-				  << config["device"].get_value()
-				  << "\"" << std::endl;
-			return EXIT_FAILURE;
+	do {
+		try {
+			// Check the device type, and call the appropriate function
+			if (config["device"] == "airspy") {
+				// Determine which airspy to use
+				if (config.count("serial_number") > 0) {
+					retry = true;
+
+					Airspy airspy {config.at("serial_number"),
+							config.at("frequency"),
+							config.at("sample_rate"),
+							AIRSPY_SAMPLE_INT16_IQ};
+					run_device(airspy, config, filter, set);
+				} else {
+					Airspy airspy {config.at("frequency"),
+							config.at("sample_rate"),
+							AIRSPY_SAMPLE_INT16_IQ};
+					run_device(airspy, config, filter, set);
+				}
+
+			} else if (config["device"] == "dummy") {
+				DummyDevice dummy {config.at("count")};
+				run_device(dummy, config, filter, set);
+			} else {
+				// Unknown device
+				std::cerr << "Unknown device type \""
+					  << config["device"].get_value()
+					  << "\"" << std::endl;
+				return EXIT_FAILURE;
+			}
+		} catch (std::runtime_error &e) {
+			std::cerr << e.what() << std::endl;
+
+			if (retry) {
+				sig = wait(1, set);
+			} else {
+				return EXIT_FAILURE;
+			}
 		}
-	} catch (std::runtime_error &e) {
-		std::cerr << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+	} while (retry && sig == SIGALRM);
 
 	return EXIT_SUCCESS;
 }
