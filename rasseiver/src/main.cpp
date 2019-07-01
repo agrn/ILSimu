@@ -110,15 +110,13 @@ int main(int argc, char **argv) {
 		if (config["device"] == "airspy") {
 			// Determine which airspy to use
 			if(config.count("serial_number") > 0) {
-				Airspy airspy {
-					config.at("serial_number"),
+				Airspy airspy {config.at("serial_number"),
 						config.at("frequency"),
 						config.at("sample_rate"),
 						AIRSPY_SAMPLE_INT16_IQ};
 				run_device(airspy, config, filter, set);
 			} else {
-				Airspy airspy {
-					config.at("frequency"),
+				Airspy airspy {config.at("frequency"),
 						config.at("sample_rate"),
 						AIRSPY_SAMPLE_INT16_IQ};
 				run_device(airspy, config, filter, set);

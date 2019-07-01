@@ -27,6 +27,7 @@ public:
 	operator double() const;
 	operator int() const;
 	operator unsigned int() const;
+	operator uint64_t() const;
 
 	bool operator==(std::string const &s) const;
 	bool operator==(ConfigValue const &o) const;

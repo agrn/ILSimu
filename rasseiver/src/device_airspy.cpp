@@ -20,7 +20,7 @@ Airspy::Airspy(unsigned int frequency, unsigned int sample_rate,
 	init_airspy(frequency, sample_rate, sample_type);
 }
 
-Airspy::Airspy(uint32_t serial_num, unsigned int frequency,
+Airspy::Airspy(uint64_t serial_num, unsigned int frequency,
 	       unsigned int sample_rate, airspy_sample_type sample_type) {
 	AIRSPY_OPERATION(airspy_open_sn, &device, serial_num);
 
@@ -33,6 +33,14 @@ void Airspy::init_airspy(unsigned int frequency, unsigned int sample_rate,
 	set_sample_rate(sample_rate);
 	set_sample_type(sample_type);
 	set_gain(1);
+}
+
+uint64_t Airspy::get_serial_number() {
+	airspy_read_partid_serialno_t partid;
+	AIRSPY_OPERATION(airspy_board_partid_serialno_read, device, &partid);
+
+	return static_cast<uint64_t> (partid.serial_no[2]) << 32 |
+		partid.serial_no[3];
 }
 
 bool Airspy::is_streaming() {

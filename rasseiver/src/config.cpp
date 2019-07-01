@@ -16,11 +16,15 @@ ConfigValue::operator double() const {
 }
 
 ConfigValue::operator int() const {
-	return std::stoi(value);
+	return std::stoi(value, nullptr, 0);
 }
 
 ConfigValue::operator unsigned int() const {
-	return static_cast<unsigned int> (std::stoi(value));
+	return static_cast<unsigned int> (std::stoi(value, nullptr, 0));
+}
+
+ConfigValue::operator uint64_t() const {
+	return static_cast<uint64_t> (std::stoll(value, nullptr, 0));
 }
 
 bool ConfigValue::operator==(std::string const &s) const {

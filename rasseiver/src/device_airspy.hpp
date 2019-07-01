@@ -40,7 +40,7 @@ public:
 	 * @param sample_rate Amount of samples the Airspy should take in a second.
 	 * @param sample_type Type of samples the Airspy should take.
 	 */
-	Airspy(uint32_t serial_num,
+	Airspy(uint64_t serial_num,
 	       unsigned int frequency=111100000,
 	       unsigned int sample_rate=2500000,
 	       airspy_sample_type sample_type=AIRSPY_SAMPLE_INT16_IQ);
@@ -50,6 +50,7 @@ public:
 	 */
 	~Airspy() override;
 
+	uint64_t get_serial_number();
 	bool is_streaming();
 
 	void set_frequency(unsigned int frequency);
