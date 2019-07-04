@@ -37,7 +37,7 @@ public:
 
 	size_t buffer_size() override;
 	int max_value() override;
-	bool is_streaming();
+	bool is_streaming() override;
 
 private:
 	std::atomic<bool> running {false};

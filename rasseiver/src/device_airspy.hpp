@@ -51,7 +51,7 @@ public:
 	~Airspy() override;
 
 	uint64_t get_serial_number();
-	bool is_streaming();
+	bool is_streaming() override;
 
 	void set_frequency(unsigned int frequency);
 	void set_sample_rate(unsigned int sample_rate);
