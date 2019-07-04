@@ -37,8 +37,8 @@ void Fd::close() {
 	}
 }
 
-Sender::Sender(std::string const &address, uint16_t port):
-	address {address}, port {port} {
+Sender::Sender(std::string &&address, uint16_t port):
+	address {std::move(address)}, port {port} {
 	reconnect();
 }
 
