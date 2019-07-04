@@ -17,8 +17,6 @@ public:
 	Device(Device const &) = delete;
 	Device &operator=(Device const &) = delete;
 
-	virtual ~Device() = default;
-
 	/**
 	 * Receive data from the device.
 	 *
@@ -45,13 +43,15 @@ public:
 	 * Returns the max value that the device can sample.
 	 */
 	virtual int max_value() = 0;
+
+	virtual bool is_streaming() = 0;
 };
 
 /**
  * An RAII class to start receiving data when constructed, and to stop it when
  * destroyed.
  */
-template<class DeviceType, typename T>
+template<typename T>
 class Receiver {
 public:
 	/**
@@ -60,7 +60,7 @@ public:
 	 * @param device The device from which data is received.
 	 * @param process The process to be applied to a batch of data.
 	 */
-	Receiver(DeviceType &device, Process<T> &process): device {device} {
+	Receiver(Device<T> &device, Process<T> &process): device {device} {
 		device.receive(process);
 	}
 
@@ -71,11 +71,14 @@ public:
 		device.stop();
 	}
 
+	Receiver(Receiver const &) = delete;
+	Receiver &operator=(Receiver const &) = delete;
+
 private:
 	/**
 	 * A reference to the device.
 	 */
-	DeviceType &device;
+	Device<T> &device;
 };
 
 #endif  /* __ILSIMU_RASSEIVER_DEVICE_HPP */

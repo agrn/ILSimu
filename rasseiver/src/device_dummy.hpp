@@ -23,11 +23,6 @@ public:
 	 */
 	DummyDevice(int count);
 
-	/**
-	 * Closes the device.
-	 */
-	~DummyDevice() override;
-
 	void set_gain(int gain) override {
 		(void) gain;
 	};
@@ -37,7 +32,7 @@ public:
 
 	size_t buffer_size() override;
 	int max_value() override;
-	bool is_streaming();
+	bool is_streaming() override;
 
 private:
 	std::atomic<bool> running {false};

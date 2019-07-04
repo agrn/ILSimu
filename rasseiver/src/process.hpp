@@ -36,25 +36,7 @@ public:
 		std::string &&host, unsigned int port):
 		buf {bufsize}, output (bufsize), filter {std::move(filter)},
 		pos {0}, step {step}, threshold {(int) (threshold * 0.92)},
-		sender {host, (uint16_t) port} {
-	}
-
-	/**
-	 * Creates a new process with a specified size, filter, and decimation
-	 * factor.
-	 *
-	 * @param bufsize The size of the input buffer to create.
-	 * @param filter The filter to create.  This version moves the buffer.
-	 * @param step The decimation factor.
-	 * @param threshold The max value that the device associated with this
-	 *   process can sample.  Multiplied by 92%, and is used to detect
-	 *   saturation.
-	 */
-	Process(size_t bufsize, Filter &&filter, int step, int threshold,
-		std::string &&host, unsigned int port):
-		buf {bufsize}, output (bufsize), filter {std::move(filter)},
-		pos {0}, step {step}, threshold {(int) (threshold * 0.92)},
-		sender {host, (uint16_t) port} {
+		sender {std::move(host), (uint16_t) port} {
 	}
 
 	// No need for these

@@ -77,7 +77,7 @@ public:
 	 * @param address The address of the server to connect to.
 	 * @param port The port of the server.
 	 */
-	Sender(std::string const &address, uint16_t port);
+	Sender(std::string &&address, uint16_t port);
 
 	/**
 	 * Closes the connection.

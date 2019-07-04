@@ -34,9 +34,9 @@ static int wait(unsigned int seconds, sigset_t const &set) {
  * @param set List of signals to wait for.
  */
 template<typename T>
-static void run_device(T &device, ConfigMap const &config,
+static void run_device(Device<T> &device, ConfigMap const &config,
 		       Filter const &filter, sigset_t const &set) {
-	Process<int16_t> process {device.buffer_size(), filter,
+	Process<T> process {device.buffer_size(), filter,
 			config.at("decimation"), device.max_value(),
 			config.at("host").get_value(), config.at("port")};
 	int sig;
@@ -44,7 +44,7 @@ static void run_device(T &device, ConfigMap const &config,
 	std::cout << "hello, world" << std::endl;
 
 	// Start receiving data from the device
-	Receiver<T, int16_t> receiver {device, process};
+	Receiver<T> receiver {device, process};
 
 	do {
 		sig = wait(1, set);
