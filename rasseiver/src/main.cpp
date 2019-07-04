@@ -8,6 +8,7 @@
 #include "config.hpp"
 #include "device_airspy.hpp"
 #include "device_dummy.hpp"
+#include "device_rspduo.hpp"
 #include "filter.hpp"
 
 static int wait(unsigned int seconds, sigset_t const &set) {
@@ -138,7 +139,18 @@ int main(int argc, char **argv) {
 			} else if (config["device"] == "dummy") {
 				DummyDevice dummy {config.at("count")};
 				run_device(dummy, config, filter, set);
-			} else {
+			} else if (config["device"] == "rspduo") {
+				// Determine which airspy to use
+
+					RSPDuo rspduo {config.at("frequency"),
+							config.at("sample_rate")};
+					run_device(rspduo, config, filter, set);
+
+
+			}
+
+
+			 else {
 				// Unknown device
 				std::cerr << "Unknown device type \""
 					  << config["device"].get_value()

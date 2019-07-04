@@ -18,7 +18,7 @@ if (PROFILE_USE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
 endif ()
 
-set(CMAKE_C_FLAGS_DEBUG "-Og -ggdb3")
+set(CMAKE_C_FLAGS_DEBUG "-ggdb3")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -s -flto -march=native")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -ggdb3 -flto -march=native")
 set(CMAKE_C_FLAGS_MINSIZEREL "-Os -s -flto -march=native")
@@ -32,6 +32,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 find_package(LIBAIRSPY REQUIRED)
 find_package(Threads REQUIRED)
+
 include_directories(${LIBAIRSPY_INCLUDE_DIR})
 
 find_program(CCACHE_PROGRAM ccache)

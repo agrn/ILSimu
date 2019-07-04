@@ -19,8 +19,7 @@ void DummyDevice::receive(Process<int16_t> &process) {
 			int count {0};
 
 			while (running &&
-			       (DummyDevice::count < 0 ||
-				count++ < DummyDevice::count)) {
+			       (count++ < DummyDevice::count)) {
 
 				std::iota(data.begin(), data.end(), 0);
 				process.apply(data.data(), data.size());
