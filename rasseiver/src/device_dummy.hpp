@@ -23,11 +23,6 @@ public:
 	 */
 	DummyDevice(int count);
 
-	/**
-	 * Closes the device.
-	 */
-	~DummyDevice() override;
-
 	void set_gain(int gain) override {
 		(void) gain;
 	};

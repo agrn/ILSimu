@@ -48,7 +48,7 @@ public:
 	/**
 	 * Closes the Airspy.
 	 */
-	~Airspy() override;
+	~Airspy();
 
 	uint64_t get_serial_number();
 	bool is_streaming() override;

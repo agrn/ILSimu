@@ -6,14 +6,10 @@
 DummyDevice::DummyDevice(int count): count {count} {
 }
 
-DummyDevice::~DummyDevice() {
-	stop();
-}
-
 void DummyDevice::receive(Process<int16_t> &process) {
 	running = true;
 	thd = std::thread {
-		[&]() {
+		[&] {
 			std::array<int16_t,
 				   DummyDevice::device_bufsize * 2> data;
 			int count {0};
